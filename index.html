@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PoubELLES · Rixensart 2026</title>
+  <title>Trashomètre · Rixensart 2026</title>
   <meta name="description" content="Suivez votre consommation de déchets et estimez votre taxe 2026 – Commune de Rixensart" />
-  <meta name="theme-color" content="#1a1a1a" />
+  <meta name="theme-color" content="#f7f6f2" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
+  <link rel="shortcut icon" href="icons/favicon.ico" />
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -17,527 +19,342 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .catch(e => console.warn('SW:', e));
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
   </script>
 
   <style>
-    /* ─── RESET & TOKENS ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --noir: #0f0f0f;
-      --noir-2: #1c1c1c;
-      --noir-3: #2a2a2a;
-      --vert: #2d7a4f;
-      --vert-vif: #3aad6a;
-      --vert-pale: #1d4a31;
-      --gris: #888;
-      --gris-clair: #b0b0b0;
-      --blanc: #f5f5f0;
-      --blanc-2: #e8e8e0;
-      --accent: #f0c040;
-      --danger: #e05a3a;
-      --danger-pale: #5a1f10;
+      --bg:           #f7f6f2;
+      --bg-2:         #ffffff;
+      --bg-3:         #eeeee8;
+      --border:       #dddcd6;
+      --border-2:     #c4c3bc;
 
-      --font-display: 'Barlow Condensed', sans-serif;
-      --font-body: 'Barlow', sans-serif;
+      --text:         #1a1a18;
+      --text-2:       #484844;
+      --text-3:       #8a8a84;
 
-      --radius: 4px;
-      --radius-lg: 8px;
-      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+      --vert:         #1e6e3e;
+      --vert-vif:     #28a055;
+      --vert-bg:      #e8f5ee;
+      --vert-border:  #b0d9c0;
+
+      --noir-cont:    #383834;
+      --noir-bg:      #f0efeb;
+      --noir-border:  #bdbcb4;
+
+      --accent:       #b45309;
+      --accent-bg:    #fef3c7;
+      --danger:       #b91c1c;
+      --danger-bg:    #fef2f2;
+      --danger-border:#fca5a5;
+
+      --font-d: 'Barlow Condensed', sans-serif;
+      --font-b: 'Barlow', sans-serif;
+      --r:  6px;
+      --rl: 10px;
+      --sh: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
     }
 
     html { font-size: 16px; scroll-behavior: smooth; }
     body {
-      background: var(--noir);
-      color: var(--blanc);
-      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-b);
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ─── TOPBAR ─── */
+    /* TOPBAR */
     #topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      height: 56px;
-      background: var(--noir-2);
-      border-bottom: 2px solid var(--vert);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 54px;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--sh);
     }
-    #topbar .logo {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1.5rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--blanc);
-      line-height: 1;
+    .logo {
+      font-family: var(--font-d); font-weight: 900; font-size: 1.35rem;
+      letter-spacing: 0.02em; text-transform: uppercase; line-height: 1;
     }
-    #topbar .logo span { color: var(--vert-vif); }
+    .logo .ac  { color: var(--vert); }
+    .logo .sep { color: var(--text-3); font-weight: 400; font-size: 0.9rem; margin: 0 5px; }
+    .logo .sub { color: var(--text-3); font-weight: 500; font-size: 0.8rem; text-transform: none; letter-spacing: 0; }
+    .tb-right  { display: flex; align-items: center; gap: 8px; }
+    #sync-badge {
+      font-size: 0.58rem; font-weight: 700; padding: 3px 7px; border-radius: 20px;
+      letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .sync-cloud { background: var(--vert-bg);  color: var(--vert);   border: 1px solid var(--vert-border); }
+    .sync-local { background: var(--bg-3);     color: var(--text-3); border: 1px solid var(--border); }
     #auth-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      background: transparent;
-      border: 1px solid var(--gris);
-      border-radius: var(--radius);
-      color: var(--gris-clair);
-      font-family: var(--font-body);
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--r);
+      color: var(--text-2); font-family: var(--font-b); font-size: 0.78rem;
+      cursor: pointer; transition: all 0.15s;
     }
-    #auth-btn:hover { border-color: var(--vert-vif); color: var(--vert-vif); }
+    #auth-btn:hover { border-color: var(--vert); color: var(--vert); background: var(--vert-bg); }
     #auth-btn img { width: 18px; height: 18px; border-radius: 50%; display: none; }
     #auth-btn img.visible { display: block; }
 
-    /* ─── SYNC BADGE ─── */
-    #sync-badge {
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    .sync-cloud { background: var(--vert-pale); color: var(--vert-vif); }
-    .sync-local { background: var(--noir-3); color: var(--gris); }
-
-    /* ─── MAIN LAYOUT ─── */
+    /* LAYOUT */
     #app { flex: 1; padding: 16px; max-width: 680px; margin: 0 auto; width: 100%; }
 
-    /* ─── SETUP SCREEN ─── */
-    #setup-screen {
-      display: none;
-      flex-direction: column;
-      gap: 24px;
-      padding: 24px 0;
-    }
+    /* SETUP */
+    #setup-screen { display: none; flex-direction: column; gap: 24px; padding: 32px 0; }
     #setup-screen.active { display: flex; }
-    .setup-title {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      line-height: 1.1;
-    }
-    .setup-title span { color: var(--vert-vif); }
-    .setup-sub { color: var(--gris-clair); font-size: 0.9rem; line-height: 1.6; }
+    .setup-title { font-family: var(--font-d); font-size: 2.3rem; font-weight: 900; text-transform: uppercase; line-height: 1.05; }
+    .setup-title .hl { color: var(--vert); }
+    .setup-sub  { color: var(--text-2); font-size: 0.92rem; line-height: 1.65; }
 
-    .form-group { display: flex; flex-direction: column; gap: 8px; }
-    .form-label {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--gris-clair);
+    /* FORMS */
+    .fg { display: flex; flex-direction: column; gap: 6px; }
+    .fl {
+      font-family: var(--font-d); font-weight: 700; font-size: 0.73rem;
+      letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-3);
     }
-    .form-select, .form-input {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius);
-      color: var(--blanc);
-      font-family: var(--font-body);
-      font-size: 1rem;
-      padding: 10px 12px;
-      width: 100%;
-      transition: border-color 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
+    .fi, .fs {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--r); color: var(--text);
+      font-family: var(--font-b); font-size: 1rem;
+      padding: 10px 12px; width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none; -webkit-appearance: none;
     }
-    .form-select:focus, .form-input:focus {
-      outline: none;
-      border-color: var(--vert-vif);
+    .fi:focus, .fs:focus {
+      outline: none; border-color: var(--vert);
+      box-shadow: 0 0 0 3px rgba(30,110,62,0.1);
     }
-    select.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    select.fs {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.45; cursor: pointer; }
 
-    .btn-primary {
-      background: var(--vert);
-      color: var(--blanc);
-      border: none;
-      border-radius: var(--radius);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 14px 24px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      width: 100%;
+    .btn-p {
+      background: var(--vert); color: #fff; border: none; border-radius: var(--r);
+      font-family: var(--font-d); font-weight: 700; font-size: 1.05rem;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 13px 24px; cursor: pointer; transition: background 0.15s; width: 100%;
     }
-    .btn-primary:hover { background: var(--vert-vif); }
-    .btn-primary:active { transform: scale(0.98); }
+    .btn-p:hover { background: #1b5f36; }
 
-    /* ─── DASHBOARD ─── */
+    /* DASHBOARD */
     #dashboard { display: none; flex-direction: column; gap: 16px; padding: 16px 0; }
     #dashboard.active { display: flex; }
 
-    /* Summary header */
-    .year-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--noir-3);
-      padding-bottom: 12px;
+    .yr-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
-    .year-label {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--gris);
+    .yr-lbl {
+      font-family: var(--font-d); font-weight: 700; font-size: 0.72rem;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3);
     }
-    .settings-link {
-      font-size: 0.8rem;
-      color: var(--gris);
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      background: none;
-      border: none;
-      font-family: var(--font-body);
+    .cfg-btn {
+      font-size: 0.78rem; color: var(--text-3); background: none; border: none;
+      font-family: var(--font-b); padding: 4px 8px; border-radius: var(--r);
+      cursor: pointer; transition: background 0.15s, color 0.15s;
     }
-    .settings-link:hover { color: var(--vert-vif); }
+    .cfg-btn:hover { background: var(--bg-3); color: var(--text); }
 
-    /* Total cost */
-    .total-card {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+    /* TOTAL CARD */
+    .tot-card {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--rl);
+      padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; box-shadow: var(--sh);
     }
-    .total-card .label {
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--gris);
-      margin-bottom: 4px;
-    }
-    .total-card .amount {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 2.8rem;
-      line-height: 1;
-      color: var(--blanc);
-    }
-    .total-card .amount .cents { font-size: 1.6rem; }
-    .total-card .breakdown {
-      text-align: right;
-      font-size: 0.8rem;
-      color: var(--gris-clair);
-      line-height: 1.8;
-    }
-    .total-card .breakdown .over { color: var(--danger); font-weight: 600; }
+    .tot-lbl  { font-family: var(--font-d); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .tot-amt  { font-family: var(--font-d); font-weight: 900; font-size: 2.8rem; line-height: 1; color: var(--text); }
+    .tot-amt .cents { font-size: 1.55rem; font-weight: 700; }
+    .tot-sub  { font-size: 0.7rem; color: var(--text-3); margin-top: 5px; }
+    .tot-bd   { text-align: right; font-size: 0.76rem; line-height: 2; }
+    .c-ok     { color: var(--vert); font-weight: 600; }
+    .c-over   { color: var(--danger); font-weight: 600; }
 
-    /* Container cards */
-    .container-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 420px) { .container-grid { grid-template-columns: 1fr; } }
-
-    .container-card {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius-lg);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    /* CONTAINER CARDS */
+    .cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 400px) { .cgrid { grid-template-columns: 1fr; } }
+    .ccard {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--rl);
+      padding: 16px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--sh);
     }
-    .container-card.noir { border-top: 3px solid #555; }
-    .container-card.vert { border-top: 3px solid var(--vert-vif); }
+    .ccard.cn { border-top: 3px solid var(--noir-cont); }
+    .ccard.cv { border-top: 3px solid var(--vert-vif); }
+    .ctit { font-family: var(--font-d); font-weight: 800; font-size: 0.92rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ctit.tv { color: var(--vert); }
 
-    .card-header { display: flex; align-items: center; justify-content: space-between; }
-    .card-title {
-      font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 1rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-    .card-icon { font-size: 1.4rem; }
-
-    /* Progress bars */
-    .metric { display: flex; flex-direction: column; gap: 5px; }
-    .metric-row { display: flex; justify-content: space-between; align-items: baseline; }
-    .metric-label { font-size: 0.72rem; color: var(--gris); letter-spacing: 0.04em; text-transform: uppercase; font-family: var(--font-display); font-weight: 600; }
-    .metric-value { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; }
-    .metric-value .quota { font-weight: 400; color: var(--gris); font-size: 0.8rem; }
-
-    .progress-track {
-      height: 6px;
-      background: var(--noir-3);
-      border-radius: 3px;
-      overflow: visible;
-      position: relative;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      max-width: 100%;
-    }
-    .progress-fill.ok { background: var(--vert-vif); }
-    .progress-fill.warn { background: var(--accent); }
-    .progress-fill.over { background: var(--danger); }
-
-    .surcharge-badge {
-      font-family: var(--font-display);
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 3px;
-      background: var(--danger-pale);
-      color: var(--danger);
-      letter-spacing: 0.04em;
+    .met  { display: flex; flex-direction: column; gap: 5px; }
+    .mrow { display: flex; justify-content: space-between; align-items: baseline; }
+    .mlbl { font-size: 0.66rem; color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase; font-family: var(--font-d); font-weight: 600; }
+    .mval { font-family: var(--font-d); font-weight: 700; font-size: 0.88rem; color: var(--text); }
+    .mval .q { font-weight: 400; color: var(--text-3); font-size: 0.78rem; }
+    .ptrack { height: 5px; background: var(--bg-3); border-radius: 3px; }
+    .pfill  { height: 100%; border-radius: 3px; transition: width 0.55s cubic-bezier(.4,0,.2,1); max-width: 100%; }
+    .pok  { background: var(--vert-vif); }
+    .pwrn { background: var(--accent); }
+    .povr { background: var(--danger); }
+    .sbdg {
+      font-family: var(--font-d); font-size: 0.66rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 3px; align-self: flex-start;
+      background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border);
     }
 
-    /* ─── LOG SECTION ─── */
-    .section-title {
-      font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 1.1rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--gris-clair);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* SECTION TITLE */
+    .stit {
+      font-family: var(--font-d); font-weight: 800; font-size: 0.82rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3);
+      display: flex; align-items: center; gap: 10px;
     }
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--noir-3);
-    }
+    .stit::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .log-form {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius-lg);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    /* FORECAST */
+    .fcast {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--rl);
+      padding: 16px; box-shadow: var(--sh);
     }
-    .log-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: end; }
-    @media (max-width: 480px) {
-      .log-row { grid-template-columns: 1fr 1fr; }
-      .log-row .btn-add { grid-column: span 2; }
+    .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .filbl { font-size: 0.66rem; color: var(--text-3); text-transform: uppercase; font-family: var(--font-d); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .fival { font-family: var(--font-d); font-weight: 800; font-size: 1.45rem; color: var(--text); }
+    .fiok  { color: var(--vert); }
+    .fiwrn { color: var(--accent); }
+    .fnote { margin-top: 12px; font-size: 0.74rem; color: var(--text-3); line-height: 1.65; border-top: 1px solid var(--border); padding-top: 10px; }
+
+    /* LOG FORM */
+    .lform {
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--rl);
+      padding: 16px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--sh);
     }
+    .lrow  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .lrow2 { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+
+    /* Radio group */
+    .rgrp { display: flex; gap: 8px; }
+    .ropt { flex: 1; position: relative; }
+    .ropt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .rlbl {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 10px 8px; border: 1.5px solid var(--border); border-radius: var(--r);
+      cursor: pointer; font-family: var(--font-d); font-weight: 700; font-size: 0.88rem;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-2);
+      background: var(--bg); transition: all 0.15s; user-select: none;
+    }
+    .ropt input[type="radio"]:checked + .rlbl { border-color: var(--vert); background: var(--vert-bg); color: var(--vert); }
+    .ropt.rn input[type="radio"]:checked + .rlbl { border-color: var(--noir-cont); background: var(--noir-bg); color: var(--noir-cont); }
+    .rlbl:hover { border-color: var(--border-2); }
 
     .btn-add {
-      background: var(--vert);
-      color: var(--blanc);
-      border: none;
-      border-radius: var(--radius);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 10px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-      white-space: nowrap;
+      background: var(--vert); color: #fff; border: none; border-radius: var(--r);
+      font-family: var(--font-d); font-weight: 700; font-size: 1rem;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 10px 20px; cursor: pointer; transition: background 0.15s; white-space: nowrap;
     }
-    .btn-add:hover { background: var(--vert-vif); }
+    .btn-add:hover { background: #1b5f36; }
+    .lhint { font-size: 0.72rem; color: var(--text-3); line-height: 1.5; }
 
-    /* Entries list */
-    .entries-list { display: flex; flex-direction: column; gap: 4px; }
-    .entry-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--noir-2);
-      border-radius: var(--radius);
-      border-left: 3px solid transparent;
-      font-size: 0.85rem;
-      animation: slideIn 0.25s ease;
+    /* ENTRIES */
+    .elist { display: flex; flex-direction: column; gap: 3px; }
+    .eitem {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--bg-2);
+      border-radius: var(--r); border: 1px solid var(--border);
+      border-left: 3px solid transparent; font-size: 0.83rem;
+      animation: slin 0.2s ease;
     }
-    .entry-item.noir-entry { border-left-color: #555; }
-    .entry-item.vert-entry { border-left-color: var(--vert-vif); }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
+    .eitem.en { border-left-color: var(--noir-cont); }
+    .eitem.ev { border-left-color: var(--vert-vif); }
+    @keyframes slin { from { opacity:0; transform: translateY(-5px); } to { opacity:1; transform: translateY(0); } }
+    .edate { color: var(--text-3); min-width: 46px; font-size: 0.76rem; font-family: var(--font-d); font-weight: 600; }
+    .etype { flex: 1; font-family: var(--font-d); font-weight: 700; font-size: 0.83rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    .ekg   { color: var(--text-2); min-width: 52px; text-align: right; font-family: var(--font-d); font-weight: 600; }
+    .elev  { color: var(--text-3); font-size: 0.7rem; min-width: 48px; text-align: right; }
+    .bdel  {
+      background: none; border: none; color: var(--border-2);
+      cursor: pointer; font-size: 0.88rem; padding: 3px 5px;
+      border-radius: 3px; transition: color 0.15s, background 0.15s; line-height: 1;
     }
-    .entry-date { color: var(--gris); min-width: 80px; font-size: 0.78rem; font-family: var(--font-display); font-weight: 600; }
-    .entry-type { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    .entry-kg { color: var(--gris-clair); min-width: 55px; text-align: right; font-family: var(--font-display); font-weight: 600; }
-    .entry-levee { color: var(--gris); font-size: 0.75rem; min-width: 50px; text-align: right; }
-    .btn-delete {
-      background: none;
-      border: none;
-      color: var(--gris);
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 2px 4px;
-      border-radius: 3px;
-      transition: color 0.2s;
-      line-height: 1;
+    .bdel:hover { color: var(--danger); background: var(--danger-bg); }
+    .empty {
+      text-align: center; padding: 36px 24px; color: var(--text-3);
+      font-size: 0.88rem; border: 1px dashed var(--border);
+      border-radius: var(--rl); line-height: 1.65;
     }
-    .btn-delete:hover { color: var(--danger); }
+    .empty .ico { font-size: 2rem; display: block; margin-bottom: 8px; }
 
-    .empty-state {
-      text-align: center;
-      padding: 32px;
-      color: var(--gris);
-      font-size: 0.9rem;
-      border: 1px dashed var(--noir-3);
-      border-radius: var(--radius-lg);
-    }
-    .empty-state .icon { font-size: 2rem; display: block; margin-bottom: 8px; }
-
-    /* ─── TOAST ─── */
+    /* TOAST */
     #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: var(--vert);
-      color: var(--blanc);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.05em;
-      padding: 10px 20px;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1000;
-      white-space: nowrap;
+      background: var(--text); color: #fff;
+      font-family: var(--font-d); font-weight: 700; font-size: 0.86rem;
+      letter-spacing: 0.04em; padding: 10px 20px; border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+      z-index: 1000; white-space: nowrap;
     }
-    #toast.visible { transform: translateX(-50%) translateY(0); }
+    #toast.vis { transform: translateX(-50%) translateY(0); }
 
-    /* ─── FORECAST SECTION ─── */
-    .forecast-card {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius-lg);
-      padding: 16px;
+    /* MODAL */
+    #moverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.28); z-index: 200;
+      align-items: center; justify-content: center; padding: 16px;
     }
-    .forecast-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-    .forecast-item { }
-    .forecast-item .fi-label { font-size: 0.72rem; color: var(--gris); text-transform: uppercase; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.04em; }
-    .forecast-item .fi-value { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; color: var(--blanc); }
-    .forecast-item .fi-value.warn { color: var(--accent); }
-    .forecast-item .fi-value.ok { color: var(--vert-vif); }
-    .forecast-note { margin-top: 12px; font-size: 0.78rem; color: var(--gris); line-height: 1.6; border-top: 1px solid var(--noir-3); padding-top: 12px; }
-
-    /* ─── MODAL / SETUP OVERLAY ─── */
-    #modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    #modal-overlay.active { display: flex; }
+    #moverlay.active { display: flex; }
     .modal {
-      background: var(--noir-2);
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--rl); padding: 24px; width: 100%; max-width: 400px;
+      display: flex; flex-direction: column; gap: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
     }
-    .modal-title {
-      font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 1.3rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+    .mtit { font-family: var(--font-d); font-weight: 800; font-size: 1.15rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .mact { display: flex; gap: 8px; }
+    .btn-s {
+      flex: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--r); color: var(--text-2);
+      font-family: var(--font-d); font-weight: 700; font-size: 0.92rem;
+      letter-spacing: 0.04em; text-transform: uppercase; padding: 11px;
+      cursor: pointer; transition: border-color 0.15s;
     }
-    .modal-actions { display: flex; gap: 8px; }
-    .btn-secondary {
-      flex: 1;
-      background: transparent;
-      border: 1px solid var(--noir-3);
-      border-radius: var(--radius);
-      color: var(--gris-clair);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 12px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .btn-secondary:hover { border-color: var(--gris-clair); }
+    .btn-s:hover { border-color: var(--border-2); }
+    .dzne { border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .dzlbl { font-size: 0.7rem; color: var(--text-3); font-family: var(--font-d); font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; }
     .btn-danger {
-      flex: 1;
-      background: var(--danger-pale);
-      border: 1px solid var(--danger);
-      border-radius: var(--radius);
-      color: var(--danger);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 12px;
-      cursor: pointer;
+      width: 100%; background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: var(--r); color: var(--danger);
+      font-family: var(--font-d); font-weight: 700; font-size: 0.92rem;
+      letter-spacing: 0.04em; text-transform: uppercase; padding: 11px; cursor: pointer;
     }
 
-    /* ─── LOADER ─── */
+    /* LOADER */
     #loader {
-      position: fixed; inset: 0;
-      background: var(--noir);
+      position: fixed; inset: 0; background: var(--bg);
       display: flex; align-items: center; justify-content: center;
-      z-index: 999;
-      transition: opacity 0.4s;
+      z-index: 999; transition: opacity 0.35s;
     }
     #loader.hidden { opacity: 0; pointer-events: none; }
-    .loader-inner {
-      font-family: var(--font-display);
-      font-weight: 900;
-      font-size: 1.8rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--vert-vif);
+    .linner {
+      font-family: var(--font-d); font-weight: 800; font-size: 1.2rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--vert);
       animation: pulse 1s ease-in-out infinite alternate;
     }
-    @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
-
-    /* ─── PRINT HIDE ─── */
-    @media print { #topbar, .log-form, .btn-delete, #toast { display: none; } }
+    @keyframes pulse { from { opacity:.3; } to { opacity:1; } }
   </style>
 </head>
 <body>
 
-<!-- Loader -->
-<div id="loader"><div class="loader-inner">Chargement…</div></div>
+<div id="loader"><div class="linner">Chargement…</div></div>
 
-<!-- Topbar -->
 <header id="topbar">
-  <div class="logo">Poub<span>ELLES</span> <span style="color:var(--gris);font-weight:400;font-size:1rem">·</span> <span style="color:var(--gris);font-weight:400;font-size:1rem">Rixensart</span></div>
-  <div style="display:flex;align-items:center;gap:8px;">
+  <div class="logo">Trash<span class="ac">omètre</span><span class="sep">·</span><span class="sub">Rixensart</span></div>
+  <div class="tb-right">
     <span id="sync-badge" class="sync-badge sync-local">LOCAL</span>
     <button id="auth-btn" onclick="toggleAuth()">
       <img id="user-avatar" src="" alt="" />
@@ -546,18 +363,17 @@
   </div>
 </header>
 
-<!-- App -->
 <main id="app">
 
-  <!-- Setup screen -->
+  <!-- SETUP -->
   <div id="setup-screen">
     <div>
-      <div class="setup-title">Configurez<br/><span>votre ménage</span></div>
-      <p class="setup-sub" style="margin-top:8px">Quelques infos pour calculer vos quotas et taxes selon le barème Rixensart 2026.</p>
+      <div class="setup-title">Configurez<br/><span class="hl">votre ménage</span></div>
+      <p class="setup-sub" style="margin-top:10px">Quelques informations pour calculer vos quotas annuels et votre taxe selon le barème Rixensart 2026.</p>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="cfg-persons">Nombre de personnes</label>
-      <select id="cfg-persons" class="form-select">
+    <div class="fg">
+      <label class="fl" for="cfg-persons">Nombre de personnes dans le ménage</label>
+      <select id="cfg-persons" class="fs">
         <option value="1">1 personne</option>
         <option value="2" selected>2 personnes</option>
         <option value="3">3 personnes</option>
@@ -565,148 +381,117 @@
         <option value="5">5 personnes et plus</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="cfg-year">Année de suivi</label>
-      <select id="cfg-year" class="form-select">
-        <option value="2026" selected>2026</option>
-      </select>
-    </div>
-    <button class="btn-primary" onclick="saveConfig()">Commencer le suivi →</button>
+    <button class="btn-p" onclick="saveConfig()">Commencer le suivi →</button>
   </div>
 
-  <!-- Dashboard -->
+  <!-- DASHBOARD -->
   <div id="dashboard">
-    <div class="year-header">
-      <span class="year-label">Bilan 2026 — <span id="dash-persons"></span> pers.</span>
-      <button class="settings-link" onclick="openSettings()">⚙ Paramètres</button>
+    <div class="yr-hdr">
+      <span class="yr-lbl">Bilan 2026 — <span id="dash-persons"></span> pers.</span>
+      <button class="cfg-btn" onclick="openSettings()">⚙ Paramètres</button>
     </div>
 
-    <!-- Total cost card -->
-    <div class="total-card">
+    <!-- Total cost -->
+    <div class="tot-card">
       <div>
-        <div class="label">Coût estimé 2026</div>
-        <div class="amount" id="total-amount">—</div>
-        <div style="font-size:0.75rem;color:var(--gris);margin-top:4px">dont forfait <span id="forfait-amount"></span></div>
+        <div class="tot-lbl">Coût actuel (collectes encodées)</div>
+        <div class="tot-amt" id="total-amount">—</div>
+        <div class="tot-sub">dont forfait annuel <strong id="forfait-amount"></strong></div>
       </div>
-      <div class="breakdown" id="cost-breakdown"></div>
+      <div class="tot-bd" id="cost-breakdown"></div>
     </div>
 
     <!-- Container cards -->
-    <div class="container-grid">
-      <!-- Noir -->
-      <div class="container-card noir">
-        <div class="card-header">
-          <div class="card-title">⬛ Résiduel</div>
+    <div class="cgrid">
+      <div class="ccard cn">
+        <div class="ctit">⬛ Résiduel</div>
+        <div class="met">
+          <div class="mrow"><span class="mlbl">Levées</span><span class="mval" id="nlt">0 <span class="q">/ 8</span></span></div>
+          <div class="ptrack"><div id="nlb" class="pfill pok" style="width:0%"></div></div>
+          <div id="nls" class="sbdg" style="display:none"></div>
         </div>
-        <div class="metric">
-          <div class="metric-row">
-            <span class="metric-label">Levées</span>
-            <span class="metric-value" id="noir-levees-val">0 <span class="quota">/ 8</span></span>
-          </div>
-          <div class="progress-track"><div id="noir-levees-bar" class="progress-fill ok" style="width:0%"></div></div>
-          <div id="noir-levees-surcharge" style="display:none" class="surcharge-badge"></div>
-        </div>
-        <div class="metric">
-          <div class="metric-row">
-            <span class="metric-label">Poids (kg)</span>
-            <span class="metric-value" id="noir-kg-val">0 <span class="quota">/ 24</span></span>
-          </div>
-          <div class="progress-track"><div id="noir-kg-bar" class="progress-fill ok" style="width:0%"></div></div>
-          <div id="noir-kg-surcharge" style="display:none" class="surcharge-badge"></div>
+        <div class="met">
+          <div class="mrow"><span class="mlbl">Poids</span><span class="mval" id="nkt">0 <span class="q">/ 24 kg</span></span></div>
+          <div class="ptrack"><div id="nkb" class="pfill pok" style="width:0%"></div></div>
+          <div id="nks" class="sbdg" style="display:none"></div>
         </div>
       </div>
-
-      <!-- Vert -->
-      <div class="container-card vert">
-        <div class="card-header">
-          <div class="card-title" style="color:var(--vert-vif)">🟩 Organique</div>
+      <div class="ccard cv">
+        <div class="ctit tv">🟩 Organique</div>
+        <div class="met">
+          <div class="mrow"><span class="mlbl">Levées</span><span class="mval" id="vlt">0 <span class="q">/ 20</span></span></div>
+          <div class="ptrack"><div id="vlb" class="pfill pok" style="width:0%"></div></div>
+          <div id="vls" class="sbdg" style="display:none"></div>
         </div>
-        <div class="metric">
-          <div class="metric-row">
-            <span class="metric-label">Levées</span>
-            <span class="metric-value" id="vert-levees-val">0 <span class="quota">/ 20</span></span>
-          </div>
-          <div class="progress-track"><div id="vert-levees-bar" class="progress-fill ok" style="width:0%"></div></div>
-          <div id="vert-levees-surcharge" style="display:none" class="surcharge-badge"></div>
-        </div>
-        <div class="metric">
-          <div class="metric-row">
-            <span class="metric-label">Poids (kg)</span>
-            <span class="metric-value" id="vert-kg-val">0 <span class="quota">/ 70</span></span>
-          </div>
-          <div class="progress-track"><div id="vert-kg-bar" class="progress-fill ok" style="width:0%"></div></div>
-          <div id="vert-kg-surcharge" style="display:none" class="surcharge-badge"></div>
+        <div class="met">
+          <div class="mrow"><span class="mlbl">Poids</span><span class="mval" id="vkt">0 <span class="q">/ 70 kg</span></span></div>
+          <div class="ptrack"><div id="vkb" class="pfill pok" style="width:0%"></div></div>
+          <div id="vks" class="sbdg" style="display:none"></div>
         </div>
       </div>
     </div>
 
     <!-- Forecast -->
-    <div class="forecast-card">
-      <div class="section-title" style="font-size:0.85rem">Projection fin d'année</div>
-      <div class="forecast-grid">
-        <div class="forecast-item">
-          <div class="fi-label">Coût projeté</div>
-          <div class="fi-value" id="proj-cost">—</div>
-        </div>
-        <div class="forecast-item">
-          <div class="fi-label">Surcoût estimé</div>
-          <div class="fi-value" id="proj-over">—</div>
-        </div>
-        <div class="forecast-item">
-          <div class="fi-label">Levées ⬛ restantes</div>
-          <div class="fi-value" id="proj-noir-levees">—</div>
-        </div>
-        <div class="forecast-item">
-          <div class="fi-label">Levées 🟩 restantes</div>
-          <div class="fi-value" id="proj-vert-levees">—</div>
-        </div>
+    <div class="fcast">
+      <div class="stit">Projection fin d'année</div>
+      <div class="fgrid">
+        <div><div class="filbl">Coût total projeté</div><div class="fival" id="proj-cost">—</div></div>
+        <div><div class="filbl">Dont surcoût estimé</div><div class="fival" id="proj-over">—</div></div>
+        <div><div class="filbl">Levées ⬛ restantes</div><div class="fival" id="proj-nl">—</div></div>
+        <div><div class="filbl">Levées 🟩 restantes</div><div class="fival" id="proj-vl">—</div></div>
       </div>
-      <div class="forecast-note" id="forecast-note"></div>
+      <div class="fnote" id="fnote"></div>
     </div>
 
     <!-- Log form -->
-    <div class="section-title">Enregistrer une collecte</div>
-    <div class="log-form">
-      <div class="log-row">
-        <div class="form-group">
-          <label class="form-label">Date</label>
-          <input type="date" id="log-date" class="form-input" />
+    <div class="stit">Enregistrer une collecte</div>
+    <div class="lform">
+      <div class="lrow">
+        <div class="fg">
+          <label class="fl">Date de la collecte</label>
+          <input type="date" id="log-date" class="fi" />
         </div>
-        <div class="form-group">
-          <label class="form-label">Conteneur</label>
-          <select id="log-type" class="form-select">
-            <option value="noir">⬛ Résiduel</option>
-            <option value="vert">🟩 Organique</option>
-          </select>
+        <div class="fg">
+          <label class="fl">Poids (kg) — optionnel</label>
+          <input type="number" id="log-kg" class="fi" min="0" max="200" step="0.5" placeholder="0" />
         </div>
-        <div class="form-group">
-          <label class="form-label">Poids (kg)</label>
-          <input type="number" id="log-kg" class="form-input" min="0" max="200" step="0.5" placeholder="0" />
+      </div>
+      <div class="fg">
+        <label class="fl">Type de conteneur</label>
+        <div class="rgrp">
+          <label class="ropt rn">
+            <input type="radio" name="log-type" value="noir" checked />
+            <span class="rlbl">⬛ Résiduel</span>
+          </label>
+          <label class="ropt rv">
+            <input type="radio" name="log-type" value="vert" />
+            <span class="rlbl">🟩 Organique</span>
+          </label>
         </div>
+      </div>
+      <div class="lrow2">
+        <div class="lhint">Chaque enregistrement compte comme 1 levée.</div>
         <button class="btn-add" onclick="addEntry()">+ Ajouter</button>
       </div>
-      <div style="font-size:0.75rem;color:var(--gris)">💡 Chaque ajout = 1 levée. Le poids est optionnel si inconnu.</div>
     </div>
 
-    <!-- Entries -->
-    <div class="section-title">Historique</div>
-    <div class="entries-list" id="entries-list">
-      <div class="empty-state"><span class="icon">🗑️</span>Aucune collecte enregistrée</div>
+    <!-- History -->
+    <div class="stit">Historique</div>
+    <div class="elist" id="elist">
+      <div class="empty"><span class="ico">🗑️</span>Aucune collecte enregistrée.<br/>Ajoutez votre première collecte ci-dessus.</div>
     </div>
 
-  </div><!-- /dashboard -->
+  </div>
 </main>
 
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- Settings modal -->
-<div id="modal-overlay">
+<div id="moverlay">
   <div class="modal">
-    <div class="modal-title">Paramètres</div>
-    <div class="form-group">
-      <label class="form-label">Nombre de personnes</label>
-      <select id="modal-persons" class="form-select">
+    <div class="mtit">Paramètres</div>
+    <div class="fg">
+      <label class="fl">Nombre de personnes</label>
+      <select id="modal-persons" class="fs">
         <option value="1">1 personne</option>
         <option value="2">2 personnes</option>
         <option value="3">3 personnes</option>
@@ -714,456 +499,242 @@
         <option value="5">5+ personnes</option>
       </select>
     </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
-      <button class="btn-primary" style="flex:1" onclick="saveSettings()">Enregistrer</button>
+    <div class="mact">
+      <button class="btn-s" onclick="closeModal()">Annuler</button>
+      <button class="btn-p" style="flex:1;width:auto" onclick="saveSettings()">Enregistrer</button>
     </div>
-    <div style="border-top:1px solid var(--noir-3);padding-top:16px;">
-      <div style="font-size:0.8rem;color:var(--gris);margin-bottom:12px">Zone danger</div>
-      <button class="btn-danger" onclick="resetData()" style="width:100%">Effacer toutes les données</button>
+    <div class="dzne">
+      <div class="dzlbl">Zone danger</div>
+      <button class="btn-danger" onclick="resetData()">Effacer toutes les données</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot, query, orderBy }
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, query, collection, orderBy }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-// ─── FIREBASE CONFIG ─── Replace with your own config ───────────────────────
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID"
+  apiKey: "AIzaSyCpNbXffRyvWzoRkL8ndupe3D-v5P7pYGg",
+  authDomain: "trashometre-4afb3.firebaseapp.com",
+  projectId: "trashometre-4afb3",
+  storageBucket: "trashometre-4afb3.firebasestorage.app",
+  messagingSenderId: "659169563910",
+  appId: "1:659169563910:web:ebad5ee0110c0d11163a87"
 };
-// ────────────────────────────────────────────────────────────────────────────
 
-const FIREBASE_ENABLED = !firebaseConfig.apiKey.startsWith("REPLACE");
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+let currentUser = null, unsubEntries = null;
 
-let app, auth, db, currentUser = null, unsubEntries = null;
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  updateAuthUI(user);
+  if (user) { syncBadge('cloud'); listenEntries(); }
+  else { syncBadge('local'); if (unsubEntries) { unsubEntries(); unsubEntries = null; } loadLocalEntries(); }
+});
 
-if (FIREBASE_ENABLED) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    updateAuthUI(user);
-    if (user) {
-      syncBadge('cloud');
-      listenEntries();
-    } else {
-      syncBadge('local');
-      if (unsubEntries) { unsubEntries(); unsubEntries = null; }
-      loadLocalEntries();
-    }
-  });
+// ── TARIFS 2026 ──
+const FORFAITS = { 1:70, 2:105, 3:140, 4:181, 5:181 };
+
+function getQuotas(p) {
+  const n = Math.min(p, 5);
+  return { noirLevees:8, noirKg: n===1?15:12*n, vertLevees:20, vertKg:35*n };
 }
 
-// ─── TARIFS 2026 ─────────────────────────────────────────────────────────────
-const FORFAITS = { 1: 70, 2: 105, 3: 140, 4: 181, 5: 181 };
-
-function getQuotas(persons) {
-  const p = Math.min(persons, 5);
-  return {
-    noirLevees: 8,
-    noirKg: p === 1 ? 15 : 12 * p,
-    vertLevees: 20,
-    vertKg: 35 * p,
-  };
-}
-
-function calcSurcharge(noirLevees, noirKg, vertLevees, vertKg, persons) {
+function calcSurcharge(nl, nk, vl, vk, persons) {
   const q = getQuotas(persons);
-  let cost = FORFAITS[Math.min(persons, 5)];
-  let details = [];
-
-  // Noir — levées supplémentaires
-  if (noirLevees > q.noirLevees) {
-    const extra = noirLevees - q.noirLevees;
-    const tier1 = Math.min(extra, 4); // levées 9→12
-    const tier2 = Math.max(extra - 4, 0); // levées 13+
-    const c = tier1 * 1.60 + tier2 * 2.00;
-    cost += c;
-    if (c > 0) details.push(`+${c.toFixed(2)}€ levées ⬛`);
+  const forfait = FORFAITS[Math.min(persons,5)];
+  let cost = forfait, details = [];
+  if (nl > q.noirLevees) {
+    const e=nl-q.noirLevees, t1=Math.min(e,4), t2=Math.max(e-4,0);
+    const c=t1*1.6+t2*2; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € levées ⬛`);
   }
-
-  // Noir — kg supplémentaires (par habitant)
-  if (noirKg > q.noirKg) {
-    const extraKg = noirKg - q.noirKg;
-    const perPers = extraKg / persons;
-    let kgCost = 0;
-    const t1 = Math.min(perPers, 50);
-    const t2 = Math.min(Math.max(perPers - 50, 0), 40);
-    const t3 = Math.max(perPers - 90, 0);
-    kgCost = (t1 * 0.60 + t2 * 1.00 + t3 * 2.00) * persons;
-    cost += kgCost;
-    if (kgCost > 0) details.push(`+${kgCost.toFixed(2)}€ kg ⬛`);
+  if (nk > q.noirKg) {
+    const pp=(nk-q.noirKg)/persons;
+    const c=(Math.min(pp,50)*0.6+Math.min(Math.max(pp-50,0),40)*1+Math.max(pp-90,0)*2)*persons;
+    cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € poids ⬛`);
   }
-
-  // Vert — levées supplémentaires
-  if (vertLevees > q.vertLevees) {
-    const c = (vertLevees - q.vertLevees) * 1.00;
-    cost += c;
-    if (c > 0) details.push(`+${c.toFixed(2)}€ levées 🟩`);
-  }
-
-  // Vert — kg supplémentaires
-  if (vertKg > q.vertKg) {
-    const c = (vertKg - q.vertKg) * 0.20;
-    cost += c;
-    if (c > 0) details.push(`+${c.toFixed(2)}€ kg 🟩`);
-  }
-
-  return { cost, details, surcharge: cost - FORFAITS[Math.min(persons, 5)] };
+  if (vl > q.vertLevees) { const c=(vl-q.vertLevees)*1; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € levées 🟩`); }
+  if (vk > q.vertKg)     { const c=(vk-q.vertKg)*0.2;   cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € poids 🟩`); }
+  return { cost, details, surcharge: cost-forfait };
 }
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let config = { persons: 2, year: 2026 };
-let entries = []; // { id, date, type, kg }
+// ── STATE ──
+let config = { persons:2, year:2026 };
+let entries = [];
 
-function loadConfig() {
-  const raw = localStorage.getItem('rx_config');
-  if (raw) config = { ...config, ...JSON.parse(raw) };
-}
+function loadConfig() { const r=localStorage.getItem('tm_config'); if(r) config={...config,...JSON.parse(r)}; }
+function saveConfigLS() { localStorage.setItem('tm_config', JSON.stringify(config)); }
 
-function saveConfigLS() {
-  localStorage.setItem('rx_config', JSON.stringify(config));
-}
-
-// ─── SETUP ───────────────────────────────────────────────────────────────────
+// ── SETUP ──
 window.saveConfig = function() {
   config.persons = parseInt(document.getElementById('cfg-persons').value);
-  saveConfigLS();
-  showDashboard();
+  saveConfigLS(); showDashboard();
 };
-
 function showDashboard() {
   document.getElementById('setup-screen').classList.remove('active');
   document.getElementById('dashboard').classList.add('active');
   renderDashboard();
 }
 
-function showSetup() {
-  document.getElementById('dashboard').classList.remove('active');
-  document.getElementById('setup-screen').classList.add('active');
-}
-
-// ─── LOCAL STORAGE ENTRIES ───────────────────────────────────────────────────
+// ── LOCAL ──
 function loadLocalEntries() {
-  const raw = localStorage.getItem('rx_entries');
-  entries = raw ? JSON.parse(raw) : [];
-  renderEntries();
-  renderDashboard();
+  const r=localStorage.getItem('tm_entries');
+  entries=r?JSON.parse(r):[];
+  renderEntries(); renderDashboard();
 }
+function saveLocalEntries() { localStorage.setItem('tm_entries', JSON.stringify(entries)); }
 
-function saveLocalEntries() {
-  localStorage.setItem('rx_entries', JSON.stringify(entries));
-}
-
-// ─── FIREBASE ENTRIES ────────────────────────────────────────────────────────
+// ── FIREBASE ──
 function listenEntries() {
-  if (!db || !currentUser) return;
-  const col = collection(db, 'users', currentUser.uid, 'entries');
-  const q = query(col, orderBy('date', 'desc'));
-  unsubEntries = onSnapshot(q, (snap) => {
-    entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderEntries();
-    renderDashboard();
+  const col=collection(db,'users',currentUser.uid,'entries');
+  const q=query(col,orderBy('date','desc'));
+  unsubEntries=onSnapshot(q,snap=>{
+    entries=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderEntries(); renderDashboard();
   });
 }
-
-async function persistEntry(entry) {
-  if (currentUser && db) {
-    await setDoc(doc(db, 'users', currentUser.uid, 'entries', entry.id), entry);
-  } else {
-    saveLocalEntries();
-  }
+async function persistEntry(e) {
+  if(currentUser&&db) await setDoc(doc(db,'users',currentUser.uid,'entries',e.id),e);
+  else saveLocalEntries();
 }
-
 async function removeEntry(id) {
-  if (currentUser && db) {
-    await deleteDoc(doc(db, 'users', currentUser.uid, 'entries', id));
-  } else {
-    entries = entries.filter(e => e.id !== id);
-    saveLocalEntries();
-    renderEntries();
-    renderDashboard();
-  }
+  if(currentUser&&db) await deleteDoc(doc(db,'users',currentUser.uid,'entries',id));
+  else { entries=entries.filter(e=>e.id!==id); saveLocalEntries(); renderEntries(); renderDashboard(); }
 }
 
-// ─── ADD / DELETE ─────────────────────────────────────────────────────────────
+// ── ADD/DELETE ──
 window.addEntry = function() {
-  const dateEl = document.getElementById('log-date');
-  const typeEl = document.getElementById('log-type');
-  const kgEl = document.getElementById('log-kg');
-
-  const date = dateEl.value || new Date().toISOString().slice(0, 10);
-  const type = typeEl.value;
-  const kg = parseFloat(kgEl.value) || 0;
-
-  const entry = {
-    id: Date.now().toString(),
-    date,
-    type,
-    kg,
-  };
-
+  const date = document.getElementById('log-date').value || new Date().toISOString().slice(0,10);
+  const type = document.querySelector('input[name="log-type"]:checked').value;
+  const kg   = parseFloat(document.getElementById('log-kg').value)||0;
+  const entry = { id:Date.now().toString(), date, type, kg };
   entries.unshift(entry);
   persistEntry(entry);
-  if (!currentUser) { saveLocalEntries(); renderEntries(); renderDashboard(); }
-
-  kgEl.value = '';
+  if(!currentUser){ saveLocalEntries(); renderEntries(); renderDashboard(); }
+  document.getElementById('log-kg').value='';
   toast('Collecte enregistrée ✓');
 };
+window.deleteEntry = id => { removeEntry(id); toast('Entrée supprimée'); };
 
-window.deleteEntry = function(id) {
-  removeEntry(id);
-  toast('Entrée supprimée');
-};
-
-// ─── RENDER ──────────────────────────────────────────────────────────────────
+// ── RENDER ──
 function getStats() {
-  const year = config.year.toString();
-  const yearEntries = entries.filter(e => e.date && e.date.startsWith(year));
-  const noirEntries = yearEntries.filter(e => e.type === 'noir');
-  const vertEntries = yearEntries.filter(e => e.type === 'vert');
-  return {
-    noirLevees: noirEntries.length,
-    noirKg: noirEntries.reduce((s, e) => s + (e.kg || 0), 0),
-    vertLevees: vertEntries.length,
-    vertKg: vertEntries.reduce((s, e) => s + (e.kg || 0), 0),
-  };
+  const yr=config.year.toString();
+  const ye=entries.filter(e=>e.date&&e.date.startsWith(yr));
+  const n=ye.filter(e=>e.type==='noir'), v=ye.filter(e=>e.type==='vert');
+  return { noirLevees:n.length, noirKg:n.reduce((s,e)=>s+(e.kg||0),0), vertLevees:v.length, vertKg:v.reduce((s,e)=>s+(e.kg||0),0) };
 }
 
 function renderDashboard() {
-  const { persons } = config;
-  const q = getQuotas(persons);
-  const stats = getStats();
-  const { cost, details, surcharge } = calcSurcharge(
-    stats.noirLevees, stats.noirKg,
-    stats.vertLevees, stats.vertKg,
-    persons
-  );
-  const forfait = FORFAITS[Math.min(persons, 5)];
+  const {persons}=config, q=getQuotas(persons), s=getStats();
+  const {cost,details,surcharge}=calcSurcharge(s.noirLevees,s.noirKg,s.vertLevees,s.vertKg,persons);
+  const forfait=FORFAITS[Math.min(persons,5)];
 
-  // Header
-  document.getElementById('dash-persons').textContent = persons;
+  document.getElementById('dash-persons').textContent=persons;
+  const eu=Math.floor(cost), ct=Math.round((cost-eu)*100).toString().padStart(2,'0');
+  document.getElementById('total-amount').innerHTML=`${eu}<span class="cents">,${ct} €</span>`;
+  document.getElementById('forfait-amount').textContent=`${forfait} €`;
+  document.getElementById('cost-breakdown').innerHTML=details.length>0
+    ? details.map(d=>`<div class="c-over">${d}</div>`).join('')
+    : `<div class="c-ok">✓ Dans les quotas</div>`;
 
-  // Total cost
-  const euros = Math.floor(cost);
-  const cents = Math.round((cost - euros) * 100).toString().padStart(2, '0');
-  document.getElementById('total-amount').innerHTML =
-    `${euros}<span class="cents">,${cents} €</span>`;
-  document.getElementById('forfait-amount').textContent = `${forfait} €`;
+  setMet('nl',s.noirLevees,q.noirLevees,'levée',true);
+  setMet('nk',s.noirKg,q.noirKg,'kg',false);
+  setMet('vl',s.vertLevees,q.vertLevees,'levée',true);
+  setMet('vk',s.vertKg,q.vertKg,'kg',false);
 
-  const breakdownEl = document.getElementById('cost-breakdown');
-  if (details.length > 0) {
-    breakdownEl.innerHTML = details.map(d => `<div class="over">${d}</div>`).join('');
-  } else {
-    breakdownEl.innerHTML = `<div style="color:var(--vert-vif)">✓ Dans les quotas</div>`;
-  }
-
-  // Noir — levées
-  setMetric('noir-levees', stats.noirLevees, q.noirLevees, 'levée', true);
-  // Noir — kg
-  setMetric('noir-kg', stats.noirKg, q.noirKg, 'kg', false);
-  // Vert — levées
-  setMetric('vert-levees', stats.vertLevees, q.vertLevees, 'levée', true);
-  // Vert — kg
-  setMetric('vert-kg', stats.vertKg, q.vertKg, 'kg', false);
-
-  // Update quota labels
-  document.getElementById('noir-levees-val').innerHTML = `${stats.noirLevees} <span class="quota">/ ${q.noirLevees}</span>`;
-  document.getElementById('noir-kg-val').innerHTML = `${stats.noirKg.toFixed(1)} <span class="quota">/ ${q.noirKg} kg</span>`;
-  document.getElementById('vert-levees-val').innerHTML = `${stats.vertLevees} <span class="quota">/ ${q.vertLevees}</span>`;
-  document.getElementById('vert-kg-val').innerHTML = `${stats.vertKg.toFixed(1)} <span class="quota">/ ${q.vertKg} kg</span>`;
-
-  // Forecast
-  renderForecast(stats, q, cost, forfait, persons);
+  document.getElementById('nlt').innerHTML=`${s.noirLevees} <span class="q">/ ${q.noirLevees}</span>`;
+  document.getElementById('nkt').innerHTML=`${s.noirKg.toFixed(1)} <span class="q">/ ${q.noirKg} kg</span>`;
+  document.getElementById('vlt').innerHTML=`${s.vertLevees} <span class="q">/ ${q.vertLevees}</span>`;
+  document.getElementById('vkt').innerHTML=`${s.vertKg.toFixed(1)} <span class="q">/ ${q.vertKg} kg</span>`;
+  renderForecast(s,q,cost,forfait,persons);
 }
 
-function setMetric(id, val, quota, unit, isLevee) {
-  const pct = Math.min((val / quota) * 100, 100);
-  const bar = document.getElementById(`${id}-bar`);
-  const surcharge = document.getElementById(`${id}-surcharge`);
-  bar.style.width = pct + '%';
-  const cls = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
-  bar.className = `progress-fill ${cls}`;
-  if (val > quota) {
-    const extra = (val - quota);
-    surcharge.style.display = 'inline-block';
-    surcharge.textContent = `+${isLevee ? extra : extra.toFixed(1)} ${unit}${isLevee && extra > 1 ? 's' : ''} supplémentaire${extra > 1 ? 's' : ''}`;
-  } else {
-    surcharge.style.display = 'none';
-  }
+function setMet(id,val,quota,unit,isL) {
+  const pct=Math.min((val/quota)*100,100);
+  const bar=document.getElementById(id+'b');
+  bar.style.width=pct+'%';
+  bar.className=`pfill ${pct>=100?'povr':pct>=80?'pwrn':'pok'}`;
+  const el=document.getElementById(id+'s');
+  if(val>quota){ const e=val-quota; el.style.display='inline-block'; el.textContent=`+${isL?e:e.toFixed(1)} ${unit}${isL&&e>1?'s':''} supplémentaire${e>1?'s':''}`; }
+  else el.style.display='none';
 }
 
-function renderForecast(stats, q, currentCost, forfait, persons) {
-  // Estimate pace: days elapsed in year vs total days
-  const now = new Date();
-  const startOfYear = new Date(config.year, 0, 1);
-  const endOfYear = new Date(config.year, 11, 31);
-  const totalDays = (endOfYear - startOfYear) / 86400000;
-  const elapsed = Math.max((now - startOfYear) / 86400000, 1);
-  const factor = totalDays / elapsed;
-
-  const projNoirLevees = Math.round(stats.noirLevees * factor);
-  const projNoirKg = stats.noirKg * factor;
-  const projVertLevees = Math.round(stats.vertLevees * factor);
-  const projVertKg = stats.vertKg * factor;
-
-  const { cost: projCost, surcharge: projSurcharge } = calcSurcharge(
-    projNoirLevees, projNoirKg, projVertLevees, projVertKg, persons
-  );
-
-  const noirLeft = Math.max(q.noirLevees - stats.noirLevees, 0);
-  const vertLeft = Math.max(q.vertLevees - stats.vertLevees, 0);
-
-  const projEl = document.getElementById('proj-cost');
-  projEl.textContent = `${projCost.toFixed(2)} €`;
-  projEl.className = `fi-value ${projCost > forfait * 1.5 ? 'warn' : 'ok'}`;
-
-  const overEl = document.getElementById('proj-over');
-  overEl.textContent = projSurcharge > 0 ? `+${projSurcharge.toFixed(2)} €` : '0 €';
-  overEl.className = `fi-value ${projSurcharge > 0 ? 'warn' : 'ok'}`;
-
-  document.getElementById('proj-noir-levees').textContent = noirLeft > 0 ? noirLeft : '—';
-  document.getElementById('proj-vert-levees').textContent = vertLeft > 0 ? vertLeft : '—';
-
-  const note = document.getElementById('forecast-note');
-  const pctYear = Math.round((elapsed / totalDays) * 100);
-  note.textContent = `Projection basée sur votre rythme actuel (${pctYear}% de l'année écoulé). La taxe forfaitaire de ${forfait} € est due indépendamment de la consommation.`;
+function renderForecast(s,q,currentCost,forfait,persons) {
+  const now=new Date(), sy=new Date(config.year,0,1), ey=new Date(config.year,11,31);
+  const total=(ey-sy)/86400000, elapsed=Math.max((now-sy)/86400000,1), fac=total/elapsed;
+  const {cost:pc,surcharge:ps}=calcSurcharge(Math.round(s.noirLevees*fac),s.noirKg*fac,Math.round(s.vertLevees*fac),s.vertKg*fac,persons);
+  const nl=Math.max(q.noirLevees-s.noirLevees,0), vl=Math.max(q.vertLevees-s.vertLevees,0);
+  const pce=document.getElementById('proj-cost');
+  pce.textContent=`${pc.toFixed(2)} €`; pce.className=`fival ${pc>forfait*1.3?'fiwrn':'fiok'}`;
+  const poe=document.getElementById('proj-over');
+  poe.textContent=ps>0?`+${ps.toFixed(2)} €`:'0 €'; poe.className=`fival ${ps>0?'fiwrn':'fiok'}`;
+  document.getElementById('proj-nl').textContent=nl>0?nl:'✓ épuisées';
+  document.getElementById('proj-vl').textContent=vl>0?vl:'✓ épuisées';
+  document.getElementById('fnote').textContent=
+    `Projection au rythme actuel (${Math.round(elapsed/total*100)}% de l'année écoulé). `+
+    `"Coût total projeté" = forfait ${forfait} € + surcoûts estimés à fin décembre.`;
 }
 
 function renderEntries() {
-  const list = document.getElementById('entries-list');
-  if (entries.length === 0) {
-    list.innerHTML = `<div class="empty-state"><span class="icon">🗑️</span>Aucune collecte enregistrée.<br/>Ajoutez votre première collecte ci-dessus.</div>`;
-    return;
-  }
-  // Sort by date desc
-  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
-  list.innerHTML = sorted.slice(0, 50).map(e => {
-    const d = new Date(e.date + 'T00:00:00');
-    const dateStr = d.toLocaleDateString('fr-BE', { day: '2-digit', month: '2-digit' });
-    const label = e.type === 'noir' ? '⬛ Résiduel' : '🟩 Organique';
-    const kgStr = e.kg > 0 ? `${e.kg} kg` : '— kg';
-    return `<div class="entry-item ${e.type}-entry">
-      <span class="entry-date">${dateStr}</span>
-      <span class="entry-type">${label}</span>
-      <span class="entry-kg">${kgStr}</span>
-      <span class="entry-levee">1 levée</span>
-      <button class="btn-delete" onclick="deleteEntry('${e.id}')" title="Supprimer">✕</button>
+  const list=document.getElementById('elist');
+  if(!entries.length){ list.innerHTML=`<div class="empty"><span class="ico">🗑️</span>Aucune collecte enregistrée.<br/>Ajoutez votre première collecte ci-dessus.</div>`; return; }
+  const sorted=[...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  list.innerHTML=sorted.slice(0,50).map(e=>{
+    // Split manually to avoid any TZ issue: "2026-05-04" → "04/05"
+    const [yr,mo,dy]=e.date.split('-');
+    const ds=`${dy}/${mo}`;
+    const lbl=e.type==='noir'?'⬛ Résiduel':'🟩 Organique';
+    const kg=e.kg>0?`${e.kg} kg`:'—';
+    return `<div class="eitem ${e.type==='noir'?'en':'ev'}">
+      <span class="edate">${ds}</span>
+      <span class="etype">${lbl}</span>
+      <span class="ekg">${kg}</span>
+      <span class="elev">1 levée</span>
+      <button class="bdel" onclick="deleteEntry('${e.id}')" title="Supprimer">✕</button>
     </div>`;
   }).join('');
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
+// ── AUTH ──
 function updateAuthUI(user) {
-  const btn = document.getElementById('auth-btn');
-  const label = document.getElementById('auth-label');
-  const avatar = document.getElementById('user-avatar');
-  if (user) {
-    label.textContent = user.displayName ? user.displayName.split(' ')[0] : 'Connecté';
-    if (user.photoURL) { avatar.src = user.photoURL; avatar.classList.add('visible'); }
-  } else {
-    label.textContent = 'Connexion';
-    avatar.classList.remove('visible');
-  }
+  const lbl=document.getElementById('auth-label'), av=document.getElementById('user-avatar');
+  if(user){ lbl.textContent=user.displayName?user.displayName.split(' ')[0]:'Connecté'; if(user.photoURL){av.src=user.photoURL;av.classList.add('visible');} }
+  else { lbl.textContent='Connexion'; av.classList.remove('visible'); }
 }
+window.toggleAuth=function(){
+  if(currentUser){ signOut(auth); toast('Déconnecté'); }
+  else signInWithPopup(auth,new GoogleAuthProvider()).then(()=>toast('Connecté ✓')).catch(()=>toast('Connexion annulée'));
+};
+function syncBadge(m){ const b=document.getElementById('sync-badge'); b.textContent=m==='cloud'?'CLOUD':'LOCAL'; b.className=`sync-badge ${m==='cloud'?'sync-cloud':'sync-local'}`; }
 
-window.toggleAuth = function() {
-  if (!FIREBASE_ENABLED) {
-    toast('Configurez Firebase dans le code pour activer la sync cloud ☁️');
-    return;
-  }
-  if (currentUser) {
-    signOut(auth);
-    toast('Déconnecté');
-  } else {
-    signInWithPopup(auth, new GoogleAuthProvider())
-      .then(() => toast('Connecté avec Google ✓'))
-      .catch(e => toast('Connexion annulée'));
-  }
-};
-
-function syncBadge(mode) {
-  const badge = document.getElementById('sync-badge');
-  if (mode === 'cloud') {
-    badge.textContent = 'CLOUD';
-    badge.className = 'sync-badge sync-cloud';
-  } else {
-    badge.textContent = 'LOCAL';
-    badge.className = 'sync-badge sync-local';
-  }
-}
-
-// ─── SETTINGS ────────────────────────────────────────────────────────────────
-window.openSettings = function() {
-  document.getElementById('modal-persons').value = config.persons;
-  document.getElementById('modal-overlay').classList.add('active');
-};
-window.closeModal = function() {
-  document.getElementById('modal-overlay').classList.remove('active');
-};
-window.saveSettings = function() {
-  config.persons = parseInt(document.getElementById('modal-persons').value);
-  saveConfigLS();
-  closeModal();
-  renderDashboard();
-  toast('Paramètres sauvegardés ✓');
-};
-window.resetData = function() {
-  if (!confirm('Effacer toutes les collectes ? Cette action est irréversible.')) return;
-  entries = [];
-  saveLocalEntries();
-  renderEntries();
-  renderDashboard();
-  closeModal();
-  toast('Données effacées');
+// ── SETTINGS ──
+window.openSettings=function(){ document.getElementById('modal-persons').value=config.persons; document.getElementById('moverlay').classList.add('active'); };
+window.closeModal=function(){ document.getElementById('moverlay').classList.remove('active'); };
+window.saveSettings=function(){ config.persons=parseInt(document.getElementById('modal-persons').value); saveConfigLS(); closeModal(); renderDashboard(); toast('Paramètres sauvegardés ✓'); };
+window.resetData=function(){
+  if(!confirm('Effacer toutes les collectes ? Action irréversible.'))return;
+  entries=[]; saveLocalEntries(); renderEntries(); renderDashboard(); closeModal(); toast('Données effacées');
 };
 
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-window.toast = function(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('visible');
-  setTimeout(() => el.classList.remove('visible'), 2800);
-};
+// ── TOAST ──
+window.toast=function(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('vis'); setTimeout(()=>el.classList.remove('vis'),2800); };
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-function init() {
+// ── INIT ──
+function init(){
   loadConfig();
-
-  // Set today's date as default
-  document.getElementById('log-date').valueAsDate = new Date();
-
-  const hasConfig = localStorage.getItem('rx_config');
-  if (hasConfig) {
-    showDashboard();
-  } else {
-    document.getElementById('setup-screen').classList.add('active');
-  }
-
-  if (!FIREBASE_ENABLED) {
-    loadLocalEntries();
-  }
-
-  // Hide loader
-  setTimeout(() => {
-    document.getElementById('loader').classList.add('hidden');
-  }, 400);
+  document.getElementById('log-date').valueAsDate=new Date();
+  const hc=localStorage.getItem('tm_config');
+  if(hc) showDashboard();
+  else document.getElementById('setup-screen').classList.add('active');
+  setTimeout(()=>{ if(!currentUser) loadLocalEntries(); document.getElementById('loader').classList.add('hidden'); },600);
 }
-
 init();
 </script>
-
 </body>
 </html>
