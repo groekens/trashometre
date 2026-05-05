@@ -1,4 +1,4 @@
-# PoubELLES · Rixensart 2026
+# Trashometre · Rixensart 2026
 
 PWA de suivi des déchets ménagers pour la commune de Rixensart.  
 Calcul automatique de la taxe proportionnelle (barème 2026) — conteneurs à puce.
