@@ -618,572 +618,467 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+// ── IMPORTS ──────────────────────────────────────────────────────────────────
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot, query, collection, orderBy }
+import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, query, collection, orderBy }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCpNbXffRyvWzoRkL8ndupe3D-v5P7pYGg",
-  authDomain: "trashometre-4afb3.firebaseapp.com",
-  projectId: "trashometre-4afb3",
-  storageBucket: "trashometre-4afb3.firebasestorage.app",
+// ── FIREBASE INIT ─────────────────────────────────────────────────────────────
+const app  = initializeApp({
+  apiKey:            "AIzaSyCpNbXffRyvWzoRkL8ndupe3D-v5P7pYGg",
+  authDomain:        "trashometre-4afb3.firebaseapp.com",
+  projectId:         "trashometre-4afb3",
+  storageBucket:     "trashometre-4afb3.firebasestorage.app",
   messagingSenderId: "659169563910",
-  appId: "1:659169563910:web:ebad5ee0110c0d11163a87"
-};
-const app  = initializeApp(firebaseConfig);
+  appId:             "1:659169563910:web:ebad5ee0110c0d11163a87"
+});
 const auth = getAuth(app);
 const db   = getFirestore(app);
-let currentUser = null, unsubEntries = null;
 
-onAuthStateChanged(auth, user => {
-  currentUser = user;
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentUser  = null;
+let unsubEntries = null;
+let entries      = [];
+let activeFilter = 'all';
+let config       = { persons: 2, year: 2026, lang: 'fr', configured: false };
+
+// ── I18N ──────────────────────────────────────────────────────────────────────
+const MONTHS = {
+  fr: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+  nl: ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+};
+const T = {
+  fr: {
+    loading:'Chargement…', login_sub:'Connectez-vous pour suivre vos collectes.',
+    login_note:'Vos données sont sauvegardées dans le cloud.', btn_google:'Continuer avec Google',
+    setup_title:'Configurez<br/><span class="hl">votre ménage</span>',
+    setup_sub:'Quelques informations pour calculer vos quotas et votre taxe selon le barème Rixensart 2026.',
+    l_persons:'Nombre de personnes dans le ménage', btn_start:'Commencer le suivi →',
+    yr_lbl: p=>`Bilan 2026 — ${p} pers.`, lbl_settings:'Paramètres',
+    lbl_current_cost:'Coût actuel (collectes encodées)',
+    lbl_residuel:'⬛ Résiduel', lbl_organique:'🟩 Organique',
+    lbl_levees:'Levées', lbl_poids:'Poids',
+    lbl_projection:"Projection fin d'année", lbl_proj_cost:'Coût total projeté',
+    lbl_proj_over:'Dont surcoût estimé', lbl_proj_nl:'Levées ⬛ restantes', lbl_proj_vl:'Levées 🟩 restantes',
+    fnote:(pct,f)=>`Projection au rythme actuel (${pct}% de l'année écoulé). Coût total projeté = forfait ${f} € + surcoûts estimés à fin décembre.`,
+    lbl_info:'Informations utiles', prime_title:'Demande de prime / dérogation',
+    prime_sub:'Enfants < 2 ans, raison médicale — rixensart.be',
+    taxe_title:'Comprendre le calcul de la taxe', taxe_sub:'Barème complet 2026',
+    lbl_add:'Enregistrer une collecte', lbl_date:'Date de la collecte',
+    lbl_kg:'Poids (kg) — optionnel', lbl_type:'Type de conteneur',
+    rlbl_noir:'⬛ Résiduel', rlbl_vert:'🟩 Organique',
+    lbl_hint:'Chaque enregistrement = 1 levée.', btn_add:'+ Ajouter',
+    lbl_history:'Historique', filt_all:'Tous', filt_noir:'⬛ Résiduel', filt_vert:'🟩 Organique',
+    lbl_empty:'Aucune collecte enregistrée.<br/>Ajoutez votre première collecte ci-dessus.',
+    lbl_back:'Retour', lbl_modal_title:'Paramètres', lbl_modal_persons:'Nombre de personnes',
+    lbl_lang:'Langue / Language / Taal', btn_cancel:'Annuler', btn_save:'Enregistrer',
+    lbl_danger:'Zone danger', btn_reset:'Effacer toutes les données',
+    login:'Connexion', logout_toast:'Déconnecté', login_toast:'Connecté ✓', cancel_toast:'Connexion annulée',
+    added_toast:'Collecte enregistrée ✓', deleted_toast:'Entrée supprimée',
+    saved_toast:'Paramètres sauvegardés ✓',
+    reset_confirm:'Effacer toutes les collectes ? Action irréversible.', reset_toast:'Données effacées',
+    c_ok:'✓ Dans les quotas',
+    sup_lev: n=>`+${n} levée${n>1?'s':''} supplémentaire${n>1?'s':''}`,
+    sup_kg:  n=>`+${n.toFixed(1)} kg supplémentaire${n>1?'s':''}`,
+    epuisees:'✓ épuisées', levee:'1 levée',
+  },
+  nl: {
+    loading:'Laden…', login_sub:'Meld u aan om uw ophalingen te volgen.',
+    login_note:'Uw gegevens worden opgeslagen in de cloud.', btn_google:'Doorgaan met Google',
+    setup_title:'Configureer<br/><span class="hl">uw huishouden</span>',
+    setup_sub:'Enkele gegevens om uw jaarlijkse quota en belasting te berekenen op basis van het Rixensart-tarief 2026.',
+    l_persons:'Aantal personen in het huishouden', btn_start:'Begin opvolging →',
+    yr_lbl: p=>`Overzicht 2026 — ${p} pers.`, lbl_settings:'Instellingen',
+    lbl_current_cost:'Huidige kost (ingevoerde ophalen)',
+    lbl_residuel:'⬛ Restafval', lbl_organique:'🟩 Organisch',
+    lbl_levees:'Ophalen', lbl_poids:'Gewicht',
+    lbl_projection:'Prognose einde jaar', lbl_proj_cost:'Geraamde totale kost',
+    lbl_proj_over:'Waarvan meerkosten', lbl_proj_nl:'Resterende ⬛ ophalen', lbl_proj_vl:'Resterende 🟩 ophalen',
+    fnote:(pct,f)=>`Prognose op basis van huidig ritme (${pct}% van het jaar verstreken). Geraamde totale kost = forfait ${f} € + geschatte meerkosten einde december.`,
+    lbl_info:'Nuttige informatie', prime_title:'Aanvraag premie / afwijking',
+    prime_sub:'Kinderen < 2 jaar, medische reden — rixensart.be',
+    taxe_title:'Berekening van de belasting', taxe_sub:'Volledig tarief 2026',
+    lbl_add:'Ophalingen registreren', lbl_date:'Datum van ophaling',
+    lbl_kg:'Gewicht (kg) — optioneel', lbl_type:'Type container',
+    rlbl_noir:'⬛ Restafval', rlbl_vert:'🟩 Organisch',
+    lbl_hint:'Elke registratie = 1 ophaling.', btn_add:'+ Toevoegen',
+    lbl_history:'Geschiedenis', filt_all:'Alle', filt_noir:'⬛ Restafval', filt_vert:'🟩 Organisch',
+    lbl_empty:'Geen ophaling geregistreerd.<br/>Voeg uw eerste ophaling hierboven toe.',
+    lbl_back:'Terug', lbl_modal_title:'Instellingen', lbl_modal_persons:'Aantal personen',
+    lbl_lang:'Langue / Language / Taal', btn_cancel:'Annuleren', btn_save:'Opslaan',
+    lbl_danger:'Gevaarzone', btn_reset:'Alle gegevens wissen',
+    login:'Aanmelden', logout_toast:'Afgemeld', login_toast:'Aangemeld ✓', cancel_toast:'Aanmelding geannuleerd',
+    added_toast:'Ophaling geregistreerd ✓', deleted_toast:'Verwijderd',
+    saved_toast:'Instellingen opgeslagen ✓',
+    reset_confirm:'Alle ophalingen wissen? Onomkeerbare actie.', reset_toast:'Gegevens gewist',
+    c_ok:'✓ Binnen quota',
+    sup_lev: n=>`+${n} extra ophaling${n>1?'en':''}`,
+    sup_kg:  n=>`+${n.toFixed(1)} kg extra`,
+    epuisees:'✓ opgebruikt', levee:'1 ophaling',
+  },
+  en: {
+    loading:'Loading…', login_sub:'Sign in to track your collections.',
+    login_note:'Your data is saved in the cloud and accessible from any device.', btn_google:'Continue with Google',
+    setup_title:'Set up<br/><span class="hl">your household</span>',
+    setup_sub:'A few details to calculate your annual quotas and tax based on the Rixensart 2026 rates.',
+    l_persons:'Number of people in the household', btn_start:'Start tracking →',
+    yr_lbl: p=>`2026 overview — ${p} pers.`, lbl_settings:'Settings',
+    lbl_current_cost:'Current cost (logged collections)',
+    lbl_residuel:'⬛ Residual', lbl_organique:'🟩 Organic',
+    lbl_levees:'Collections', lbl_poids:'Weight',
+    lbl_projection:'Year-end projection', lbl_proj_cost:'Projected total cost',
+    lbl_proj_over:'Of which surcharge', lbl_proj_nl:'⬛ remaining collections', lbl_proj_vl:'🟩 remaining collections',
+    fnote:(pct,f)=>`Projection at current pace (${pct}% of year elapsed). Projected total cost = flat fee ${f} € + estimated surcharges by year-end.`,
+    lbl_info:'Useful information', prime_title:'Request a rebate / exemption',
+    prime_sub:'Children under 2, medical reason — rixensart.be',
+    taxe_title:'Understanding the tax', taxe_sub:'Full 2026 schedule',
+    lbl_add:'Log a collection', lbl_date:'Collection date',
+    lbl_kg:'Weight (kg) — optional', lbl_type:'Container type',
+    rlbl_noir:'⬛ Residual', rlbl_vert:'🟩 Organic',
+    lbl_hint:'Each entry = 1 collection.', btn_add:'+ Add',
+    lbl_history:'History', filt_all:'All', filt_noir:'⬛ Residual', filt_vert:'🟩 Organic',
+    lbl_empty:'No collections logged yet.<br/>Add your first one above.',
+    lbl_back:'Back', lbl_modal_title:'Settings', lbl_modal_persons:'Number of people',
+    lbl_lang:'Langue / Language / Taal', btn_cancel:'Cancel', btn_save:'Save',
+    lbl_danger:'Danger zone', btn_reset:'Delete all data',
+    login:'Sign in', logout_toast:'Signed out', login_toast:'Signed in ✓', cancel_toast:'Sign-in cancelled',
+    added_toast:'Collection logged ✓', deleted_toast:'Entry deleted',
+    saved_toast:'Settings saved ✓',
+    reset_confirm:'Delete all collections? This cannot be undone.', reset_toast:'Data cleared',
+    c_ok:'✓ Within quotas',
+    sup_lev: n=>`+${n} extra collection${n>1?'s':''}`,
+    sup_kg:  n=>`+${n.toFixed(1)} kg extra`,
+    epuisees:'✓ used up', levee:'1 collection',
+  }
+};
+function t(key, ...args) {
+  const fn = T[config.lang || 'fr'][key];
+  return typeof fn === 'function' ? fn(...args) : (fn ?? key);
+}
+
+// ── TARIFS 2026 ───────────────────────────────────────────────────────────────
+const FORFAITS = {1:70, 2:105, 3:140, 4:181, 5:181};
+function getQuotas(p) {
+  const n = Math.min(p, 5);
+  return { noirLevees:8, noirKg:n===1?15:12*n, vertLevees:20, vertKg:35*n };
+}
+function calcSurcharge(nl, nk, vl, vk, persons) {
+  const q=getQuotas(persons), forfait=FORFAITS[Math.min(persons,5)];
+  let cost=forfait, details=[];
+  if(nl>q.noirLevees){const e=nl-q.noirLevees,t1=Math.min(e,4),t2=Math.max(e-4,0),c=t1*1.6+t2*2;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € levées ⬛`);}
+  if(nk>q.noirKg){const pp=(nk-q.noirKg)/persons,c=(Math.min(pp,50)*0.6+Math.min(Math.max(pp-50,0),40)+Math.max(pp-90,0)*2)*persons;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € poids ⬛`);}
+  if(vl>q.vertLevees){const c=(vl-q.vertLevees);cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € levées 🟩`);}
+  if(vk>q.vertKg){const c=(vk-q.vertKg)*0.2;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € poids 🟩`);}
+  return {cost, details, surcharge:cost-forfait};
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function hideAll() {
+  document.getElementById('login-screen').style.display  = 'none';
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('info-screen').classList.remove('active');
+}
+function showLogin() {
+  hideAll();
+  document.getElementById('login-screen').style.display = 'flex';
+  hideLoader();
+}
+function showSetup() {
+  hideAll();
+  document.getElementById('setup-screen').classList.add('active');
+  hideLoader();
+}
+function showDashboard() {
+  hideAll();
+  document.getElementById('dashboard').classList.add('active');
+  hideLoader();
+  renderDashboard();
+}
+window.showInfo  = () => { hideAll(); document.getElementById('info-screen').classList.add('active'); };
+window.hideInfo  = () => showDashboard();
+function hideLoader() {
+  document.getElementById('loader').classList.add('hidden');
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+window.signInGoogle = () => {
+  signInWithPopup(auth, new GoogleAuthProvider()).catch(() => toast(t('cancel_toast')));
+};
+window.toggleAuth = () => {
+  if (currentUser) { signOut(auth); }
+  else signInGoogle();
+};
+
+function updateAuthUI(user) {
+  const lbl = document.getElementById('auth-label');
+  const av  = document.getElementById('user-avatar');
   if (user) {
-    updateAuthUI(user);
-    listenEntries();
-    // Config stored in Firestore user doc
-    loadUserConfig();
+    lbl.textContent = user.displayName ? user.displayName.split(' ')[0] : '●';
+    if (user.photoURL) { av.src = user.photoURL; av.classList.add('visible'); }
   } else {
-    // Not logged in — show login screen
-    showLoginScreen();
-    document.getElementById('loader').classList.add('hidden');
+    lbl.textContent = t('login');
+    av.classList.remove('visible');
+  }
+}
+
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
+  updateAuthUI(user);
+  if (user) {
+    // Load config from Firestore, then show correct screen
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid, 'meta', 'config'));
+      if (snap.exists()) config = { ...config, ...snap.data() };
+    } catch(e) { /* use defaults */ }
+    applyLang();
+    listenEntries();
+    if (config.configured) showDashboard();
+    else showSetup();
+  } else {
+    // Signed out
+    if (unsubEntries) { unsubEntries(); unsubEntries = null; }
+    entries = [];
+    showLogin();
   }
 });
 
-// ── I18N ──────────────────────────────────────────────────────────────────────
-const T = {
-  fr: {
-    loading: 'Chargement…',
-    setup_title: 'Configurez<br/><span class="hl">votre ménage</span>',
-    setup_sub: 'Quelques informations pour calculer vos quotas annuels et votre taxe selon le barème Rixensart 2026.',
-    l_persons: 'Nombre de personnes dans le ménage',
-    btn_start: 'Commencer le suivi →',
-    yr_lbl: (p) => `Bilan 2026 — ${p} pers.`,
-    lbl_settings: 'Paramètres',
-    lbl_current_cost: 'Coût actuel (collectes encodées)',
-    lbl_residuel: '⬛ Résiduel',
-    lbl_organique: '🟩 Organique',
-    lbl_levees: 'Levées',
-    lbl_poids: 'Poids',
-    lbl_projection: 'Projection fin d\'année',
-    lbl_proj_cost: 'Coût total projeté',
-    lbl_proj_over: 'Dont surcoût estimé',
-    lbl_proj_nl: 'Levées ⬛ restantes',
-    lbl_proj_vl: 'Levées 🟩 restantes',
-    fnote: (pct, f) => `Projection au rythme actuel (${pct}% de l'année écoulé). "Coût total projeté" = forfait ${f} € + surcoûts estimés à fin décembre.`,
-    lbl_info: 'Informations utiles',
-    prime_title: 'Demande de prime / dérogation',
-    prime_sub: 'Enfants < 2 ans, raison médicale — site rixensart.be',
-    taxe_title: 'Comprendre le calcul de la taxe',
-    taxe_sub: 'Barème complet 2026 — forfaits, levées, poids',
-    lbl_add: 'Enregistrer une collecte',
-    lbl_date: 'Date de la collecte',
-    lbl_kg: 'Poids (kg) — optionnel',
-    lbl_type: 'Type de conteneur',
-    rlbl_noir: '⬛ Résiduel',
-    rlbl_vert: '🟩 Organique',
-    lbl_hint: 'Chaque enregistrement = 1 levée.',
-    btn_add: '+ Ajouter',
-    lbl_history: 'Historique',
-    filt_all: 'Tous',
-    filt_noir: '⬛ Résiduel',
-    filt_vert: '🟩 Organique',
-    lbl_empty: 'Aucune collecte enregistrée.<br/>Ajoutez votre première collecte ci-dessus.',
-    lbl_back: 'Retour',
-    info_title: 'Calcul de la taxe déchets 2026',
-    info_sub: 'Commune de Rixensart — Conteneurs à puce',
-    lbl_modal_title: 'Paramètres',
-    lbl_modal_persons: 'Nombre de personnes',
-    lbl_lang: 'Langue / Language / Taal',
-    btn_cancel: 'Annuler',
-    btn_save: 'Enregistrer',
-    lbl_danger: 'Zone danger',
-    btn_reset: 'Effacer toutes les données',
-    c_ok: '✓ Dans les quotas',
-    login_sub: 'Connectez-vous pour suivre vos collectes et accéder à votre tableau de bord.',
-    login_note: 'Vos données sont sauvegardées dans le cloud et accessibles depuis n'importe quel appareil.',
-    btn_google: 'Continuer avec Google',
-    login: 'Connexion',
-    logout_toast: 'Déconnecté',
-    login_toast: 'Connecté ✓',
-    cancel_toast: 'Connexion annulée',
-    added_toast: 'Collecte enregistrée ✓',
-    deleted_toast: 'Entrée supprimée',
-    saved_toast: 'Paramètres sauvegardés ✓',
-    reset_confirm: 'Effacer toutes les collectes ? Action irréversible.',
-    reset_toast: 'Données effacées',
-    sup_lev: (n) => `+${n} levée${n>1?'s':''} supplémentaire${n>1?'s':''}`,
-    sup_kg:  (n) => `+${n.toFixed(1)} kg supplémentaire${n>1?'s':''}`,
-    epuisees: '✓ épuisées',
-    levee: '1 levée',
-  },
-  nl: {
-    loading: 'Laden…',
-    setup_title: 'Configureer<br/><span class="hl">uw huishouden</span>',
-    setup_sub: 'Enkele gegevens om uw jaarlijkse quota en belasting te berekenen op basis van het Rixensart-tarief 2026.',
-    l_persons: 'Aantal personen in het huishouden',
-    btn_start: 'Begin opvolging →',
-    yr_lbl: (p) => `Overzicht 2026 — ${p} pers.`,
-    lbl_settings: 'Instellingen',
-    lbl_current_cost: 'Huidige kost (ingevoerde ophalen)',
-    lbl_residuel: '⬛ Restafval',
-    lbl_organique: '🟩 Organisch',
-    lbl_levees: 'Ophalen',
-    lbl_poids: 'Gewicht',
-    lbl_projection: 'Prognose einde jaar',
-    lbl_proj_cost: 'Geraamde totale kost',
-    lbl_proj_over: 'Waarvan meerkosten',
-    lbl_proj_nl: 'Resterende ⬛ ophalen',
-    lbl_proj_vl: 'Resterende 🟩 ophalen',
-    fnote: (pct, f) => `Prognose op basis van huidig ritme (${pct}% van het jaar verstreken). "Geraamde totale kost" = forfait ${f} € + geschatte meerkosten einde december.`,
-    lbl_info: 'Nuttige informatie',
-    prime_title: 'Aanvraag premie / afwijking',
-    prime_sub: 'Kinderen < 2 jaar, medische reden — rixensart.be',
-    taxe_title: 'Berekening van de belasting',
-    taxe_sub: 'Volledig tarief 2026 — forfait, ophalen, gewicht',
-    lbl_add: 'Ophalingen registreren',
-    lbl_date: 'Datum van ophaling',
-    lbl_kg: 'Gewicht (kg) — optioneel',
-    lbl_type: 'Type container',
-    rlbl_noir: '⬛ Restafval',
-    rlbl_vert: '🟩 Organisch',
-    lbl_hint: 'Elke registratie = 1 ophaling.',
-    btn_add: '+ Toevoegen',
-    lbl_history: 'Geschiedenis',
-    filt_all: 'Alle',
-    filt_noir: '⬛ Restafval',
-    filt_vert: '🟩 Organisch',
-    lbl_empty: 'Geen ophaling geregistreerd.<br/>Voeg uw eerste ophaling hierboven toe.',
-    lbl_back: 'Terug',
-    info_title: 'Berekening afvalbelasting 2026',
-    info_sub: 'Gemeente Rixensart — Containers met chip',
-    lbl_modal_title: 'Instellingen',
-    lbl_modal_persons: 'Aantal personen',
-    lbl_lang: 'Langue / Language / Taal',
-    btn_cancel: 'Annuleren',
-    btn_save: 'Opslaan',
-    lbl_danger: 'Gevaarzone',
-    btn_reset: 'Alle gegevens wissen',
-    c_ok: '✓ Binnen quota',
-    login_sub: 'Meld u aan om uw ophalingen te volgen en toegang te krijgen tot uw dashboard.',
-    login_note: 'Uw gegevens worden opgeslagen in de cloud en zijn toegankelijk vanaf elk apparaat.',
-    btn_google: 'Doorgaan met Google',
-    login: 'Aanmelden',
-    logout_toast: 'Afgemeld',
-    login_toast: 'Aangemeld ✓',
-    cancel_toast: 'Aanmelding geannuleerd',
-    added_toast: 'Ophaling geregistreerd ✓',
-    deleted_toast: 'Verwijderd',
-    saved_toast: 'Instellingen opgeslagen ✓',
-    reset_confirm: 'Alle ophalingen wissen? Onomkeerbare actie.',
-    reset_toast: 'Gegevens gewist',
-    sup_lev: (n) => `+${n} extra ophaling${n>1?'en':''}`,
-    sup_kg:  (n) => `+${n.toFixed(1)} kg extra`,
-    epuisees: '✓ opgebruikt',
-    levee: '1 ophaling',
-  },
-  en: {
-    loading: 'Loading…',
-    setup_title: 'Set up<br/><span class="hl">your household</span>',
-    setup_sub: 'A few details to calculate your annual quotas and tax based on the Rixensart 2026 rates.',
-    l_persons: 'Number of people in the household',
-    btn_start: 'Start tracking →',
-    yr_lbl: (p) => `2026 overview — ${p} pers.`,
-    lbl_settings: 'Settings',
-    lbl_current_cost: 'Current cost (logged collections)',
-    lbl_residuel: '⬛ Residual',
-    lbl_organique: '🟩 Organic',
-    lbl_levees: 'Collections',
-    lbl_poids: 'Weight',
-    lbl_projection: 'Year-end projection',
-    lbl_proj_cost: 'Projected total cost',
-    lbl_proj_over: 'Of which surcharge',
-    lbl_proj_nl: '⬛ remaining collections',
-    lbl_proj_vl: '🟩 remaining collections',
-    fnote: (pct, f) => `Projection at current pace (${pct}% of the year elapsed). "Projected total cost" = flat fee ${f} € + estimated surcharges by end of December.`,
-    lbl_info: 'Useful information',
-    prime_title: 'Request a rebate / exemption',
-    prime_sub: 'Children under 2, medical reason — rixensart.be',
-    taxe_title: 'Understanding the tax calculation',
-    taxe_sub: 'Full 2026 schedule — flat fees, collections, weight',
-    lbl_add: 'Log a collection',
-    lbl_date: 'Collection date',
-    lbl_kg: 'Weight (kg) — optional',
-    lbl_type: 'Container type',
-    rlbl_noir: '⬛ Residual',
-    rlbl_vert: '🟩 Organic',
-    lbl_hint: 'Each entry = 1 collection.',
-    btn_add: '+ Add',
-    lbl_history: 'History',
-    filt_all: 'All',
-    filt_noir: '⬛ Residual',
-    filt_vert: '🟩 Organic',
-    lbl_empty: 'No collections logged yet.<br/>Add your first one above.',
-    lbl_back: 'Back',
-    info_title: 'Waste tax calculation 2026',
-    info_sub: 'Rixensart municipality — Smart bins',
-    lbl_modal_title: 'Settings',
-    lbl_modal_persons: 'Number of people',
-    lbl_lang: 'Langue / Language / Taal',
-    btn_cancel: 'Cancel',
-    btn_save: 'Save',
-    lbl_danger: 'Danger zone',
-    btn_reset: 'Delete all data',
-    c_ok: '✓ Within quotas',
-    login_sub: 'Sign in to track your collections and access your dashboard.',
-    login_note: 'Your data is saved in the cloud and accessible from any device.',
-    btn_google: 'Continue with Google',
-    login: 'Sign in',
-    logout_toast: 'Signed out',
-    login_toast: 'Signed in ✓',
-    cancel_toast: 'Sign-in cancelled',
-    added_toast: 'Collection logged ✓',
-    deleted_toast: 'Entry deleted',
-    saved_toast: 'Settings saved ✓',
-    reset_confirm: 'Delete all collections? This cannot be undone.',
-    reset_toast: 'Data cleared',
-    sup_lev: (n) => `+${n} extra collection${n>1?'s':''}`,
-    sup_kg:  (n) => `+${n.toFixed(1)} kg extra`,
-    epuisees: '✓ used up',
-    levee: '1 collection',
-  }
-};
-
-function t(key, ...args) {
-  const fn = T[config.lang || 'fr'][key];
-  return typeof fn === 'function' ? fn(...args) : (fn || key);
-}
-
-function applyLang() {
-  const lang = config.lang || 'fr';
-  document.documentElement.lang = lang;
-  document.getElementById('loader-txt').textContent = t('loading');
-  document.getElementById('s-title').innerHTML = t('setup_title');
-  document.getElementById('s-sub').textContent = t('setup_sub');
-  document.getElementById('l-persons').textContent = t('l_persons');
-  document.getElementById('btn-start').textContent = t('btn_start');
-  document.getElementById('lbl-settings').textContent = t('lbl_settings');
-  document.getElementById('lbl-current-cost').textContent = t('lbl_current_cost');
-  document.getElementById('lbl-residuel').textContent = t('lbl_residuel');
-  document.getElementById('lbl-organique').textContent = t('lbl_organique');
-  document.getElementById('lbl-levees-n').textContent = t('lbl_levees');
-  document.getElementById('lbl-poids-n').textContent = t('lbl_poids');
-  document.getElementById('lbl-levees-v').textContent = t('lbl_levees');
-  document.getElementById('lbl-poids-v').textContent = t('lbl_poids');
-  document.getElementById('lbl-projection').textContent = t('lbl_projection');
-  document.getElementById('lbl-proj-cost').textContent = t('lbl_proj_cost');
-  document.getElementById('lbl-proj-over').textContent = t('lbl_proj_over');
-  document.getElementById('lbl-proj-nl').textContent = t('lbl_proj_nl');
-  document.getElementById('lbl-proj-vl').textContent = t('lbl_proj_vl');
-  document.getElementById('lbl-info').textContent = t('lbl_info');
-  document.getElementById('lbl-prime-title').textContent = t('prime_title');
-  document.getElementById('lbl-prime-sub').textContent = t('prime_sub');
-  document.getElementById('lbl-taxe-title').textContent = t('taxe_title');
-  document.getElementById('lbl-taxe-sub').textContent = t('taxe_sub');
-  document.getElementById('lbl-add-title').textContent = t('lbl_add');
-  document.getElementById('lbl-date').textContent = t('lbl_date');
-  document.getElementById('lbl-kg').textContent = t('lbl_kg');
-  document.getElementById('lbl-type').textContent = t('lbl_type');
-  document.getElementById('rlbl-noir').textContent = t('rlbl_noir');
-  document.getElementById('rlbl-vert').textContent = t('rlbl_vert');
-  document.getElementById('lbl-hint').textContent = t('lbl_hint');
-  document.getElementById('btn-add').textContent = t('btn_add');
-  document.getElementById('lbl-history').textContent = t('lbl_history');
-  document.getElementById('filt-all').textContent = t('filt_all');
-  document.getElementById('filt-noir').textContent = t('filt_noir');
-  document.getElementById('filt-vert').textContent = t('filt_vert');
-  document.getElementById('lbl-back').textContent = t('lbl_back');
-  document.getElementById('info-title').textContent = t('info_title');
-  document.getElementById('info-sub').textContent = t('info_sub');
-  document.getElementById('lbl-modal-title').textContent = t('lbl_modal_title');
-  document.getElementById('lbl-modal-persons').textContent = t('lbl_modal_persons');
-  document.getElementById('btn-cancel').textContent = t('btn_cancel');
-  document.getElementById('btn-save').textContent = t('btn_save');
-  document.getElementById('lbl-danger').textContent = t('lbl_danger');
-  document.getElementById('btn-reset').textContent = t('btn_reset');
-  document.getElementById('auth-label').textContent = currentUser ? (currentUser.displayName?.split(' ')[0] || 'OK') : t('login');
-  if (document.getElementById('login-sub')) {
-    document.getElementById('login-sub').textContent = t('login_sub');
-    document.getElementById('login-note').textContent = t('login_note');
-    document.getElementById('btn-google-login').textContent = t('btn_google');
-  }
-
-  // Lang buttons
-  ['fr','nl','en'].forEach(l => document.getElementById('lb-'+l).classList.toggle('active', l === lang));
-
-  renderDashboard();
-  renderEntries();
-}
-
-window.setLang = function(l) { config.lang = l; applyLang(); };
-
-// ── TARIFS 2026 ──
-const FORFAITS = { 1:70, 2:105, 3:140, 4:181, 5:181 };
-const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-const MONTHS_NL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
-const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-function monthName(mo) {
-  const idx = parseInt(mo) - 1;
-  const lang = config.lang || 'fr';
-  return lang==='nl' ? MONTHS_NL[idx] : lang==='en' ? MONTHS_EN[idx] : MONTHS_FR[idx];
-}
-
-function getQuotas(p) {
-  const n = Math.min(p, 5);
-  return { noirLevees:8, noirKg: n===1?15:12*n, vertLevees:20, vertKg:35*n };
-}
-
-function calcSurcharge(nl, nk, vl, vk, persons) {
-  const q = getQuotas(persons);
-  const forfait = FORFAITS[Math.min(persons,5)];
-  let cost=forfait, details=[];
-  if(nl>q.noirLevees){ const e=nl-q.noirLevees,t1=Math.min(e,4),t2=Math.max(e-4,0),c=t1*1.6+t2*2; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € ${t('lbl_levees')} ⬛`); }
-  if(nk>q.noirKg){ const pp=(nk-q.noirKg)/persons,c=(Math.min(pp,50)*0.6+Math.min(Math.max(pp-50,0),40)*1+Math.max(pp-90,0)*2)*persons; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € ${t('lbl_poids')} ⬛`); }
-  if(vl>q.vertLevees){ const c=(vl-q.vertLevees)*1; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € ${t('lbl_levees')} 🟩`); }
-  if(vk>q.vertKg){ const c=(vk-q.vertKg)*0.2; cost+=c; if(c>0) details.push(`+${c.toFixed(2)} € ${t('lbl_poids')} 🟩`); }
-  return { cost, details, surcharge: cost-forfait };
-}
-
-// ── STATE ──
-let config = { persons:2, year:2026, lang:'fr' };
-let entries = [];
-let activeFilter = 'all';
-
-async function loadUserConfig() {
-  try {
-    const snap = await getDoc(doc(db, 'users', currentUser.uid, 'meta', 'config'));
-    if (snap.exists()) config = { ...config, ...snap.data() };
-  } catch(e) { /* use defaults */ }
-  applyLang();
-  const hc = config.configured;
-  if (hc) showDashboard();
-  else document.getElementById('setup-screen').classList.add('active');
-  document.getElementById('loader').classList.add('hidden');
-}
-async function saveConfigFS() {
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+async function saveConfig() {
   config.configured = true;
-  if (currentUser && db)
-    await setDoc(doc(db, 'users', currentUser.uid, 'meta', 'config'), config);
+  try { await setDoc(doc(db, 'users', currentUser.uid, 'meta', 'config'), config); } catch(e) {}
 }
-
-// ── SETUP / NAV ──
-window.saveConfig = function() {
+window.saveConfig = async function() {
   config.persons = parseInt(document.getElementById('cfg-persons').value);
-  saveConfigFS(); showDashboard();
+  await saveConfig();
+  showDashboard();
 };
-function showDashboard() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('setup-screen').classList.remove('active');
-  document.getElementById('info-screen').classList.remove('active');
-  document.getElementById('dashboard').classList.add('active');
-  renderDashboard();
-}
-window.showInfo = function() {
-  document.getElementById('dashboard').classList.remove('active');
-  document.getElementById('info-screen').classList.add('active');
-};
-window.hideInfo = function() { showDashboard(); };
 
-// ── LOCAL ──
-// localStorage removed — Firebase only
-
-// ── FIREBASE ──
+// ── ENTRIES — FIREBASE ────────────────────────────────────────────────────────
 function listenEntries() {
-  const col=collection(db,'users',currentUser.uid,'entries');
-  const q=query(col,orderBy('date','desc'));
-  unsubEntries=onSnapshot(q,snap=>{ entries=snap.docs.map(d=>({id:d.id,...d.data()})); renderEntries(); renderDashboard(); });
+  if (!currentUser) return;
+  const q = query(collection(db, 'users', currentUser.uid, 'entries'), orderBy('date', 'desc'));
+  unsubEntries = onSnapshot(q, snap => {
+    entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderEntries();
+    renderDashboard();
+  });
 }
-async function persistEntry(e) {
-  await setDoc(doc(db,'users',currentUser.uid,'entries',e.id),e);
-}
-async function removeEntry(id) {
-  await deleteDoc(doc(db,'users',currentUser.uid,'entries',id));
-}
-
-// ── ADD / DELETE ──
-window.addEntry = function() {
-  const date=document.getElementById('log-date').value||new Date().toISOString().slice(0,10);
-  const type=document.querySelector('input[name="log-type"]:checked').value;
-  const kg=parseFloat(document.getElementById('log-kg').value)||0;
-  const entry={id:Date.now().toString(),date,type,kg};
-  entries.unshift(entry); persistEntry(entry);
-  document.getElementById('log-kg').value='';
+window.addEntry = async function() {
+  if (!currentUser) return;
+  const date = document.getElementById('log-date').value || new Date().toISOString().slice(0,10);
+  const type = document.querySelector('input[name="log-type"]:checked').value;
+  const kg   = parseFloat(document.getElementById('log-kg').value) || 0;
+  const entry = { id: Date.now().toString(), date, type, kg };
+  await setDoc(doc(db, 'users', currentUser.uid, 'entries', entry.id), entry);
+  document.getElementById('log-kg').value = '';
   toast(t('added_toast'));
 };
-window.deleteEntry = id => { removeEntry(id); toast(t('deleted_toast')); };
+window.deleteEntry = async id => {
+  if (!currentUser) return;
+  await deleteDoc(doc(db, 'users', currentUser.uid, 'entries', id));
+  toast(t('deleted_toast'));
+};
 
-// ── FILTER ──
+// ── FILTER ────────────────────────────────────────────────────────────────────
 window.setFilter = function(f) {
   activeFilter = f;
   ['all','noir','vert'].forEach(x => {
-    const el=document.getElementById('filt-'+x);
-    el.className = 'filt-btn' + (x===f ? ` active-${x}` : '');
+    document.getElementById('filt-'+x).className = 'filt-btn' + (x===f ? ` active-${x}` : '');
   });
   renderEntries();
 };
 
-// ── RENDER ──
+// ── RENDER ────────────────────────────────────────────────────────────────────
 function getStats() {
-  const yr=config.year.toString(), ye=entries.filter(e=>e.date&&e.date.startsWith(yr));
-  const n=ye.filter(e=>e.type==='noir'), v=ye.filter(e=>e.type==='vert');
-  return { noirLevees:n.length, noirKg:n.reduce((s,e)=>s+(e.kg||0),0), vertLevees:v.length, vertKg:v.reduce((s,e)=>s+(e.kg||0),0) };
+  const yr = config.year.toString();
+  const ye = entries.filter(e => e.date && e.date.startsWith(yr));
+  const n  = ye.filter(e => e.type==='noir');
+  const v  = ye.filter(e => e.type==='vert');
+  return {
+    noirLevees: n.length, noirKg: n.reduce((s,e)=>s+(e.kg||0),0),
+    vertLevees: v.length, vertKg: v.reduce((s,e)=>s+(e.kg||0),0),
+  };
 }
-
 function renderDashboard() {
-  const {persons}=config, q=getQuotas(persons), s=getStats();
-  const {cost,details,surcharge}=calcSurcharge(s.noirLevees,s.noirKg,s.vertLevees,s.vertKg,persons);
-  const forfait=FORFAITS[Math.min(persons,5)];
-
-  document.getElementById('dash-persons').textContent=persons;
+  const {persons} = config, q = getQuotas(persons), s = getStats();
+  const {cost, details} = calcSurcharge(s.noirLevees, s.noirKg, s.vertLevees, s.vertKg, persons);
+  const forfait = FORFAITS[Math.min(persons,5)];
+  document.getElementById('dash-persons').textContent = persons;
   document.getElementById('yr-lbl').innerHTML = t('yr_lbl', persons);
-  const eu=Math.floor(cost), ct=Math.round((cost-eu)*100).toString().padStart(2,'0');
-  document.getElementById('total-amount').innerHTML=`${eu}<span class="cents">,${ct} €</span>`;
-  document.getElementById('forfait-amount').textContent=`${forfait} €`;
-  document.getElementById('cost-breakdown').innerHTML=details.length>0
+  const eu = Math.floor(cost), ct = Math.round((cost-eu)*100).toString().padStart(2,'0');
+  document.getElementById('total-amount').innerHTML = `${eu}<span class="cents">,${ct} €</span>`;
+  document.getElementById('forfait-amount').textContent = `${forfait} €`;
+  document.getElementById('cost-breakdown').innerHTML = details.length
     ? details.map(d=>`<div class="c-over">${d}</div>`).join('')
     : `<div class="c-ok">${t('c_ok')}</div>`;
-
-  setMet('nl',s.noirLevees,q.noirLevees,true);
-  setMet('nk',s.noirKg,q.noirKg,false);
-  setMet('vl',s.vertLevees,q.vertLevees,true);
-  setMet('vk',s.vertKg,q.vertKg,false);
-
-  document.getElementById('nlt').innerHTML=`${s.noirLevees} <span class="q">/ ${q.noirLevees}</span>`;
-  document.getElementById('nkt').innerHTML=`${s.noirKg.toFixed(1)} <span class="q">/ ${q.noirKg} kg</span>`;
-  document.getElementById('vlt').innerHTML=`${s.vertLevees} <span class="q">/ ${q.vertLevees}</span>`;
-  document.getElementById('vkt').innerHTML=`${s.vertKg.toFixed(1)} <span class="q">/ ${q.vertKg} kg</span>`;
-  renderForecast(s,q,cost,forfait,persons);
+  setMet('nl', s.noirLevees, q.noirLevees, true);
+  setMet('nk', s.noirKg,     q.noirKg,     false);
+  setMet('vl', s.vertLevees, q.vertLevees, true);
+  setMet('vk', s.vertKg,     q.vertKg,     false);
+  document.getElementById('nlt').innerHTML = `${s.noirLevees} <span class="q">/ ${q.noirLevees}</span>`;
+  document.getElementById('nkt').innerHTML = `${s.noirKg.toFixed(1)} <span class="q">/ ${q.noirKg} kg</span>`;
+  document.getElementById('vlt').innerHTML = `${s.vertLevees} <span class="q">/ ${q.vertLevees}</span>`;
+  document.getElementById('vkt').innerHTML = `${s.vertKg.toFixed(1)} <span class="q">/ ${q.vertKg} kg</span>`;
+  renderForecast(s, q, cost, forfait, persons);
 }
-
-function setMet(id,val,quota,isL) {
-  const pct=Math.min((val/quota)*100,100);
-  const bar=document.getElementById(id+'b');
-  bar.style.width=pct+'%'; bar.className=`pfill ${pct>=100?'povr':pct>=80?'pwrn':'pok'}`;
-  const el=document.getElementById(id+'s');
-  if(val>quota){
-    const e=val-quota;
-    el.style.display='inline-block';
+function setMet(id, val, quota, isL) {
+  const pct = Math.min((val/quota)*100, 100);
+  const bar = document.getElementById(id+'b');
+  bar.style.width = pct+'%';
+  bar.className = `pfill ${pct>=100?'povr':pct>=80?'pwrn':'pok'}`;
+  const el = document.getElementById(id+'s');
+  if (val > quota) {
+    const e = val - quota;
+    el.style.display = 'inline-block';
     el.textContent = isL ? t('sup_lev', e) : t('sup_kg', e);
-  } else el.style.display='none';
+  } else {
+    el.style.display = 'none';
+  }
 }
-
-function renderForecast(s,q,currentCost,forfait,persons) {
+function renderForecast(s, q, currentCost, forfait, persons) {
   const now=new Date(), sy=new Date(config.year,0,1), ey=new Date(config.year,11,31);
   const total=(ey-sy)/86400000, elapsed=Math.max((now-sy)/86400000,1), fac=total/elapsed;
-  const {cost:pc,surcharge:ps}=calcSurcharge(Math.round(s.noirLevees*fac),s.noirKg*fac,Math.round(s.vertLevees*fac),s.vertKg*fac,persons);
-  const nl=Math.max(q.noirLevees-s.noirLevees,0), vl=Math.max(q.vertLevees-s.vertLevees,0);
-  const pce=document.getElementById('proj-cost');
-  pce.textContent=`${pc.toFixed(2)} €`; pce.className=`fival ${pc>forfait*1.3?'fiwrn':'fiok'}`;
-  const poe=document.getElementById('proj-over');
-  poe.textContent=ps>0?`+${ps.toFixed(2)} €`:'0 €'; poe.className=`fival ${ps>0?'fiwrn':'fiok'}`;
-  document.getElementById('proj-nl').textContent=nl>0?nl:t('epuisees');
-  document.getElementById('proj-vl').textContent=vl>0?vl:t('epuisees');
-  document.getElementById('fnote').textContent=t('fnote', Math.round(elapsed/total*100), forfait);
+  const {cost:pc, surcharge:ps} = calcSurcharge(
+    Math.round(s.noirLevees*fac), s.noirKg*fac,
+    Math.round(s.vertLevees*fac), s.vertKg*fac, persons
+  );
+  const nl = Math.max(q.noirLevees-s.noirLevees, 0);
+  const vl = Math.max(q.vertLevees-s.vertLevees, 0);
+  const pce = document.getElementById('proj-cost');
+  pce.textContent = `${pc.toFixed(2)} €`;
+  pce.className = `fival ${pc>forfait*1.3?'fiwrn':'fiok'}`;
+  const poe = document.getElementById('proj-over');
+  poe.textContent = ps>0 ? `+${ps.toFixed(2)} €` : '0 €';
+  poe.className = `fival ${ps>0?'fiwrn':'fiok'}`;
+  document.getElementById('proj-nl').textContent = nl>0 ? nl : t('epuisees');
+  document.getElementById('proj-vl').textContent = vl>0 ? vl : t('epuisees');
+  document.getElementById('fnote').textContent = t('fnote', Math.round(elapsed/total*100), forfait);
 }
-
 function renderEntries() {
-  const list=document.getElementById('elist');
-  const yr=config.year.toString();
-  let filtered=[...entries]
-    .filter(e=>e.date&&e.date.startsWith(yr))
-    .sort((a,b)=>b.date.localeCompare(a.date));
-  if(activeFilter!=='all') filtered=filtered.filter(e=>e.type===activeFilter);
-
-  if(!filtered.length){
-    list.innerHTML=`<div class="empty"><span class="ico">🗑️</span><span>${t('lbl_empty')}</span></div>`;
+  const list = document.getElementById('elist');
+  const yr = config.year.toString();
+  let filtered = [...entries].filter(e => e.date && e.date.startsWith(yr));
+  if (activeFilter !== 'all') filtered = filtered.filter(e => e.type === activeFilter);
+  filtered.sort((a,b) => b.date.localeCompare(a.date));
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><span class="ico">🗑️</span><span>${t('lbl_empty')}</span></div>`;
     return;
   }
-
-  // Group by YYYY-MM
   const groups = {};
-  filtered.forEach(e => {
-    const ym = e.date.slice(0,7); // "2026-05"
-    if (!groups[ym]) groups[ym] = [];
-    groups[ym].push(e);
-  });
-
+  filtered.forEach(e => { const ym=e.date.slice(0,7); if(!groups[ym])groups[ym]=[]; groups[ym].push(e); });
   let html = '';
   Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(ym => {
-    const [yr2, mo] = ym.split('-');
-    html += `<div class="month-sep">${monthName(mo)} ${yr2}</div>`;
+    const [yr2,mo] = ym.split('-');
+    const mname = MONTHS[config.lang||'fr'][parseInt(mo)-1];
+    html += `<div class="month-sep">${mname} ${yr2}</div>`;
     const grp = groups[ym];
-    grp.forEach((e, i) => {
+    grp.forEach((e,i) => {
       const [,mo2,dy] = e.date.split('-');
-      const ds = `${dy}/${mo2}`;
-      const lbl = e.type==='noir' ? t('lbl_residuel') : t('lbl_organique');
-      const kg = e.kg>0 ? `${e.kg} kg` : '—';
-      const first = i===0, last = i===grp.length-1;
-      let rStyle = '';
-      if(first&&last) rStyle='border-radius:var(--r)';
-      else if(first) rStyle='border-radius:var(--r) var(--r) 0 0';
-      else if(last) rStyle='border-radius:0 0 var(--r) var(--r);margin-bottom:4px';
-      html+=`<div class="eitem ${e.type==='noir'?'en':'ev'}" style="${rStyle}">
-        <span class="edate">${ds}</span>
-        <span class="etype">${lbl}</span>
-        <span class="ekg">${kg}</span>
+      const first=i===0, last=i===grp.length-1;
+      let rs = first&&last?'border-radius:var(--r)' : first?'border-radius:var(--r) var(--r) 0 0' : last?'border-radius:0 0 var(--r) var(--r);margin-bottom:4px':'';
+      html += `<div class="eitem ${e.type==='noir'?'en':'ev'}" style="${rs}">
+        <span class="edate">${dy}/${mo2}</span>
+        <span class="etype">${e.type==='noir'?t('lbl_residuel'):t('lbl_organique')}</span>
+        <span class="ekg">${e.kg>0?e.kg+' kg':'—'}</span>
         <span class="elev">${t('levee')}</span>
-        <button class="bdel" onclick="deleteEntry('${e.id}')" title="✕">✕</button>
+        <button class="bdel" onclick="deleteEntry('${e.id}')">✕</button>
       </div>`;
     });
   });
   list.innerHTML = html;
 }
 
-// ── AUTH ──
-function updateAuthUI(user) {
-  const lbl=document.getElementById('auth-label'), av=document.getElementById('user-avatar');
-  if(user){ lbl.textContent=user.displayName?user.displayName.split(' ')[0]:t('login'); if(user.photoURL){av.src=user.photoURL;av.classList.add('visible');} }
-  else { lbl.textContent=t('login'); av.classList.remove('visible'); }
+// ── LANG ──────────────────────────────────────────────────────────────────────
+function applyLang() {
+  const L = config.lang || 'fr';
+  document.documentElement.lang = L;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.innerHTML=val; };
+  const setText = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setText('loader-txt',       t('loading'));
+  setText('login-sub',        t('login_sub'));
+  setText('login-note',       t('login_note'));
+  setText('btn-google-login', t('btn_google'));
+  set    ('s-title',          t('setup_title'));
+  setText('s-sub',            t('setup_sub'));
+  setText('l-persons',        t('l_persons'));
+  setText('btn-start',        t('btn_start'));
+  setText('lbl-settings',     t('lbl_settings'));
+  setText('lbl-current-cost', t('lbl_current_cost'));
+  setText('lbl-residuel',     t('lbl_residuel'));
+  setText('lbl-organique',    t('lbl_organique'));
+  ['n','v'].forEach(x => { setText('lbl-levees-'+x, t('lbl_levees')); setText('lbl-poids-'+x, t('lbl_poids')); });
+  setText('lbl-projection',   t('lbl_projection'));
+  setText('lbl-proj-cost',    t('lbl_proj_cost'));
+  setText('lbl-proj-over',    t('lbl_proj_over'));
+  setText('lbl-proj-nl',      t('lbl_proj_nl'));
+  setText('lbl-proj-vl',      t('lbl_proj_vl'));
+  setText('lbl-info',         t('lbl_info'));
+  setText('lbl-prime-title',  t('prime_title'));
+  setText('lbl-prime-sub',    t('prime_sub'));
+  setText('lbl-taxe-title',   t('taxe_title'));
+  setText('lbl-taxe-sub',     t('taxe_sub'));
+  setText('lbl-add-title',    t('lbl_add'));
+  setText('lbl-date',         t('lbl_date'));
+  setText('lbl-kg',           t('lbl_kg'));
+  setText('lbl-type',         t('lbl_type'));
+  setText('rlbl-noir',        t('rlbl_noir'));
+  setText('rlbl-vert',        t('rlbl_vert'));
+  setText('lbl-hint',         t('lbl_hint'));
+  setText('btn-add',          t('btn_add'));
+  setText('lbl-history',      t('lbl_history'));
+  setText('filt-all',         t('filt_all'));
+  setText('filt-noir',        t('filt_noir'));
+  setText('filt-vert',        t('filt_vert'));
+  setText('lbl-back',         t('lbl_back'));
+  setText('lbl-modal-title',  t('lbl_modal_title'));
+  setText('lbl-modal-persons',t('lbl_modal_persons'));
+  setText('btn-cancel',       t('btn_cancel'));
+  setText('btn-save',         t('btn_save'));
+  setText('lbl-danger',       t('lbl_danger'));
+  setText('btn-reset',        t('btn_reset'));
+  setText('auth-label', currentUser ? (currentUser.displayName?.split(' ')[0]||'●') : t('login'));
+  ['fr','nl','en'].forEach(l => document.getElementById('lb-'+l)?.classList.toggle('active', l===L));
 }
-window.showLoginScreen = function() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-screen').style.flexDirection = 'column';
-  document.getElementById('setup-screen').classList.remove('active');
-  document.getElementById('dashboard').classList.remove('active');
-  document.getElementById('info-screen').classList.remove('active');
-};
-window.signInGoogle = function() {
-  signInWithPopup(auth, new GoogleAuthProvider()).catch(() => toast('Connexion annulée'));
-};
-window.toggleAuth=function(){
-  if(currentUser){ signOut(auth); toast(t('logout_toast')); showLoginScreen(); }
-  else signInWithPopup(auth,new GoogleAuthProvider()).then(()=>toast(t('login_toast'))).catch(()=>toast(t('cancel_toast')));
-};
-function syncBadge(m){ /* always Firebase */ }
+window.setLang = function(l) { config.lang = l; applyLang(); renderEntries(); };
 
-// ── SETTINGS ──
-window.openSettings=function(){
-  document.getElementById('modal-persons').value=config.persons;
-  ['fr','nl','en'].forEach(l=>document.getElementById('lb-'+l).classList.toggle('active',l===(config.lang||'fr')));
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+window.openSettings = function() {
+  document.getElementById('modal-persons').value = config.persons;
+  ['fr','nl','en'].forEach(l => document.getElementById('lb-'+l).classList.toggle('active', l===(config.lang||'fr')));
   document.getElementById('moverlay').classList.add('active');
 };
-window.closeModal=function(){ document.getElementById('moverlay').classList.remove('active'); };
-window.saveSettings=function(){
-  config.persons=parseInt(document.getElementById('modal-persons').value);
-  saveConfigFS(); closeModal(); applyLang();
+window.closeModal   = () => document.getElementById('moverlay').classList.remove('active');
+window.saveSettings = async function() {
+  config.persons = parseInt(document.getElementById('modal-persons').value);
+  await saveConfig();
+  closeModal(); applyLang();
   toast(t('saved_toast'));
 };
-window.resetData=function(){
-  if(!confirm(t('reset_confirm')))return;
-  entries=[]; renderEntries(); renderDashboard(); closeModal(); toast(t('reset_toast'));
-  // Also delete all Firestore entries
-  entries.forEach(e => deleteDoc(doc(db,'users',currentUser.uid,'entries',e.id)));
+window.resetData = async function() {
+  if (!confirm(t('reset_confirm'))) return;
+  // Delete all entries from Firestore
+  const snap = await getDocs(collection(db, 'users', currentUser.uid, 'entries'));
+  const deletes = snap.docs.map(d => deleteDoc(d.ref));
+  await Promise.all(deletes);
+  closeModal();
+  toast(t('reset_toast'));
 };
 
-// ── TOAST ──
-window.toast=function(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('vis'); setTimeout(()=>el.classList.remove('vis'),2800); };
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+window.toast = function(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('vis');
+  setTimeout(() => el.classList.remove('vis'), 2800);
+};
 
-// ── INIT ──
-function init(){
-  document.getElementById('log-date').valueAsDate=new Date();
-  // applyLang with defaults while waiting for auth
-  applyLang();
-  // onAuthStateChanged will take over — show loader until then
-  // Safety fallback: hide loader after 6s even if Firebase hangs
-  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 6000);
-}
-init();
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.getElementById('log-date').valueAsDate = new Date();
+applyLang(); // Apply default lang (fr) immediately so loader text is correct
+// onAuthStateChanged handles everything else — loader hides inside showLogin/showDashboard/showSetup
 </script>
 </body>
 </html>
