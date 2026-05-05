@@ -88,6 +88,18 @@
     #auth-btn img { width: 18px; height: 18px; border-radius: 50%; display: none; }
     #auth-btn img.visible { display: block; }
 
+    /* ── TABS ── */
+    .tab-btn {
+      flex: 1; padding: 9px; border: none; border-radius: 6px;
+      font-family: var(--font-d); font-weight: 700; font-size: 0.95rem;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+      background: transparent; color: var(--text-3); box-shadow: none;
+    }
+    .tab-btn.tab-active {
+      background: var(--bg-2); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
     /* ── LOGIN BUTTONS ── */
     .login-btn {
       display: flex; align-items: center; justify-content: center; gap: 12px;
@@ -152,9 +164,10 @@
       box-shadow: 0 4px 16px rgba(30,143,56,0.25);
     }
     .tot-lbl  { font-family: var(--font-d); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 4px; }
-    .tot-amt  { font-family: var(--font-d); font-weight: 900; font-size: 3.2rem; line-height: 1; color: #fff; }
-    .tot-amt .cents { font-size: 1.75rem; font-weight: 700; }
-    .tot-sub  { font-size: 0.76rem; color: rgba(255,255,255,0.6); margin-top: 6px; }
+    .tot-surplus { font-family: var(--font-d); font-weight: 900; font-size: 3.2rem; line-height: 1; }
+    .tot-surplus.no-surplus { color: var(--green-light); }
+    .tot-surplus.has-surplus { color: #fff; }
+    .tot-sub  { font-size: 0.76rem; color: rgba(255,255,255,0.55); margin-top: 8px; }
     .tot-bd   { text-align: right; font-size: 0.82rem; line-height: 2; }
     .c-ok     { color: var(--green-light); font-weight: 600; }
     .c-over   { color: #fca5a5; font-weight: 600; }
@@ -403,12 +416,8 @@
 
       <!-- Tab switcher -->
       <div style="display:flex;background:var(--bg-3);border-radius:var(--r);padding:3px;margin-bottom:20px;">
-        <button id="tab-login" onclick="switchTab('login')"
-          style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--font-d);font-weight:700;font-size:0.95rem;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;background:var(--bg-2);color:var(--text);box-shadow:var(--sh);"
-          id="tab-signin">Connexion</button>
-        <button onclick="switchTab('register')"
-          style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--font-d);font-weight:700;font-size:0.95rem;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;background:transparent;color:var(--text-3);box-shadow:none;"
-          id="tab-register">Créer un compte</button>
+        <button class="tab-btn tab-active" id="tab-signin"   onclick="switchTab('login')"   >Connexion</button>
+        <button class="tab-btn"            id="tab-register" onclick="switchTab('register')">Créer un compte</button>
       </div>
 
       <!-- Login form -->
@@ -490,10 +499,10 @@
     </div>
 
     <div class="tot-card">
-      <div>
-        <div class="tot-lbl" id="lbl-current-cost">Coût actuel (collectes encodées)</div>
-        <div class="tot-amt" id="total-amount">—</div>
-        <div class="tot-sub">dont forfait annuel <strong id="forfait-amount"></strong></div>
+      <div style="flex:1;">
+        <div class="tot-lbl" id="lbl-current-cost">Surcoût en cours</div>
+        <div class="tot-surplus" id="surplus-amount">0 €</div>
+        <div class="tot-sub" id="forfait-line">+ forfait <strong id="forfait-amount"></strong> · total <strong id="total-amount-small"></strong></div>
       </div>
       <div class="tot-bd" id="cost-breakdown"></div>
     </div>
@@ -727,6 +736,7 @@ const T = {
   fr: {
     loading:'Chargement…', login_sub:'Connectez-vous pour suivre vos collectes.',
     login_note:'Vos données sont sauvegardées dans le cloud.', btn_google:'Continuer avec Google',
+    btn_signin:'Se connecter', btn_register:'Créer mon compte', btn_forgot:'Mot de passe oublié ?',
     setup_title:'Configurez<br/><span class="hl">votre ménage</span>',
     setup_sub:'Quelques informations pour calculer vos quotas et votre taxe selon le barème Rixensart 2026.',
     l_persons:'Nombre de personnes dans le ménage', btn_start:'Commencer le suivi →',
@@ -761,6 +771,7 @@ const T = {
   nl: {
     loading:'Laden…', login_sub:'Meld u aan om uw ophalingen te volgen.',
     login_note:'Uw gegevens worden opgeslagen in de cloud.', btn_google:'Doorgaan met Google',
+    btn_signin:'Aanmelden', btn_register:'Account aanmaken', btn_forgot:'Wachtwoord vergeten?',
     setup_title:'Configureer<br/><span class="hl">uw huishouden</span>',
     setup_sub:'Enkele gegevens om uw jaarlijkse quota en belasting te berekenen op basis van het Rixensart-tarief 2026.',
     l_persons:'Aantal personen in het huishouden', btn_start:'Begin opvolging →',
@@ -795,6 +806,7 @@ const T = {
   en: {
     loading:'Loading…', login_sub:'Sign in to track your collections.',
     login_note:'Your data is saved in the cloud and accessible from any device.', btn_google:'Continue with Google',
+    btn_signin:'Sign in', btn_register:'Create account', btn_forgot:'Forgot password?',
     setup_title:'Set up<br/><span class="hl">your household</span>',
     setup_sub:'A few details to calculate your annual quotas and tax based on the Rixensart 2026 rates.',
     l_persons:'Number of people in the household', btn_start:'Start tracking →',
@@ -889,9 +901,8 @@ window.switchTab = function(tab) {
   const isLogin = tab === 'login';
   document.getElementById('form-login').style.display    = isLogin ? 'flex' : 'none';
   document.getElementById('form-register').style.display = isLogin ? 'none' : 'flex';
-  const tabBase = 'flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--font-d);font-weight:700;font-size:0.95rem;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;';
-  document.getElementById('tab-signin').style.cssText   = tabBase + (isLogin  ? 'background:var(--bg-2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.08)' : 'background:transparent;color:var(--text-3);box-shadow:none');
-  document.getElementById('tab-register').style.cssText = tabBase + (!isLogin ? 'background:var(--bg-2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.08)' : 'background:transparent;color:var(--text-3);box-shadow:none');
+  document.getElementById('tab-signin').classList.toggle('tab-active', isLogin);
+  document.getElementById('tab-register').classList.toggle('tab-active', !isLogin);
   clearAuthErrors();
 };
 
@@ -973,8 +984,17 @@ function updateAuthUI(user) {
   const lbl = document.getElementById('auth-label');
   const av  = document.getElementById('user-avatar');
   if (user) {
-    lbl.textContent = user.displayName ? user.displayName.split(' ')[0] : '●';
-    if (user.photoURL) { av.src = user.photoURL; av.classList.add('visible'); }
+    if (user.photoURL) {
+      av.src = user.photoURL; av.classList.add('visible');
+      lbl.textContent = '';
+    } else {
+      // Email/password login: show first letter of email
+      const initial = user.displayName
+        ? user.displayName.split(' ')[0]
+        : (user.email ? user.email[0].toUpperCase() : '?');
+      lbl.textContent = initial;
+      av.classList.remove('visible');
+    }
   } else {
     lbl.textContent = t('login');
     av.classList.remove('visible');
@@ -1066,13 +1086,18 @@ function getStats() {
 }
 function renderDashboard() {
   const {persons} = config, q = getQuotas(persons), s = getStats();
-  const {cost, details} = calcSurcharge(s.noirLevees, s.noirKg, s.vertLevees, s.vertKg, persons);
+  const {cost, details, surcharge} = calcSurcharge(s.noirLevees, s.noirKg, s.vertLevees, s.vertKg, persons);
   const forfait = FORFAITS[Math.min(persons,5)];
   document.getElementById('dash-persons').textContent = persons;
   document.getElementById('yr-lbl').innerHTML = t('yr_lbl', persons);
-  const eu = Math.floor(cost), ct = Math.round((cost-eu)*100).toString().padStart(2,'0');
-  document.getElementById('total-amount').innerHTML = `${eu}<span class="cents">,${ct} €</span>`;
+  // Surplus-first display
+  const surplusFmt = surcharge > 0
+    ? `+${surcharge.toFixed(2).replace('.',',')} €`
+    : '0 €';
+  document.getElementById('surplus-amount').textContent = surplusFmt;
+  document.getElementById('surplus-amount').className = 'tot-surplus ' + (surcharge > 0 ? 'has-surplus' : 'no-surplus');
   document.getElementById('forfait-amount').textContent = `${forfait} €`;
+  document.getElementById('total-amount-small').textContent = `${cost.toFixed(2).replace('.',',')} €`;
   document.getElementById('cost-breakdown').innerHTML = details.length
     ? details.map(d=>`<div class="c-over">${d}</div>`).join('')
     : `<div class="c-ok">${t('c_ok')}</div>`;
