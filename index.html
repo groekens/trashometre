@@ -75,12 +75,7 @@
     .logo .sub { color: rgba(255,255,255,0.65); font-weight: 500; font-size: 0.82rem; text-transform: none; letter-spacing: 0; }
     .tb-right  { display: flex; align-items: center; gap: 8px; }
 
-    #sync-badge {
-      font-size: 0.6rem; font-weight: 700; padding: 3px 8px; border-radius: 20px;
-      letter-spacing: 0.07em; text-transform: uppercase;
-    }
-    .sync-cloud { background: var(--green-light); color: var(--green-deeper); }
-    .sync-local { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); }
+    /* sync badge removed — always Firebase */
 
     #auth-btn {
       display: flex; align-items: center; gap: 6px;
@@ -368,7 +363,6 @@
 <header id="topbar">
   <div class="logo">Trash<span class="ac">omètre</span><span class="sep">·</span><span class="sub">Rixensart</span></div>
   <div class="tb-right">
-    <span id="sync-badge" class="sync-badge sync-local">LOCAL</span>
     <button id="auth-btn" onclick="toggleAuth()">
       <img id="user-avatar" src="" alt="" />
       <span id="auth-label">Connexion</span>
@@ -377,6 +371,25 @@
 </header>
 
 <main id="app">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:32px;padding:60px 16px;text-align:center;min-height:60vh;">
+    <div>
+      <div style="font-family:var(--font-d);font-weight:900;font-size:2.6rem;text-transform:uppercase;line-height:1.05;color:var(--text)">
+        Trash<span style="color:var(--green-dark)">omètre</span>
+      </div>
+      <div style="font-size:1rem;color:var(--text-3);margin-top:10px;line-height:1.6" id="login-sub">
+        Connectez-vous pour suivre vos collectes et accéder à votre tableau de bord.
+      </div>
+    </div>
+    <button onclick="signInGoogle()" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 28px;background:var(--bg-2);border:2px solid var(--border);border-radius:var(--r);font-family:var(--font-b);font-weight:600;font-size:1rem;color:var(--text);cursor:pointer;transition:all 0.15s;box-shadow:var(--sh);width:100%;max-width:300px;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      <span id="btn-google-login">Continuer avec Google</span>
+    </button>
+    <div style="font-size:0.78rem;color:var(--text-3);max-width:280px;line-height:1.6" id="login-note">
+      Vos données sont sauvegardées dans le cloud et accessibles depuis n'importe quel appareil.
+    </div>
+  </div>
 
   <!-- SETUP -->
   <div id="setup-screen">
@@ -608,7 +621,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, query, collection, orderBy }
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot, query, collection, orderBy }
   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -625,9 +638,17 @@ const db   = getFirestore(app);
 let currentUser = null, unsubEntries = null;
 
 onAuthStateChanged(auth, user => {
-  currentUser = user; updateAuthUI(user);
-  if (user) { syncBadge('cloud'); listenEntries(); }
-  else { syncBadge('local'); if (unsubEntries) { unsubEntries(); unsubEntries = null; } loadLocalEntries(); }
+  currentUser = user;
+  if (user) {
+    updateAuthUI(user);
+    listenEntries();
+    // Config stored in Firestore user doc
+    loadUserConfig();
+  } else {
+    // Not logged in — show login screen
+    showLoginScreen();
+    document.getElementById('loader').classList.add('hidden');
+  }
 });
 
 // ── I18N ──────────────────────────────────────────────────────────────────────
@@ -680,6 +701,9 @@ const T = {
     lbl_danger: 'Zone danger',
     btn_reset: 'Effacer toutes les données',
     c_ok: '✓ Dans les quotas',
+    login_sub: 'Connectez-vous pour suivre vos collectes et accéder à votre tableau de bord.',
+    login_note: 'Vos données sont sauvegardées dans le cloud et accessibles depuis n'importe quel appareil.',
+    btn_google: 'Continuer avec Google',
     login: 'Connexion',
     logout_toast: 'Déconnecté',
     login_toast: 'Connecté ✓',
@@ -742,6 +766,9 @@ const T = {
     lbl_danger: 'Gevaarzone',
     btn_reset: 'Alle gegevens wissen',
     c_ok: '✓ Binnen quota',
+    login_sub: 'Meld u aan om uw ophalingen te volgen en toegang te krijgen tot uw dashboard.',
+    login_note: 'Uw gegevens worden opgeslagen in de cloud en zijn toegankelijk vanaf elk apparaat.',
+    btn_google: 'Doorgaan met Google',
     login: 'Aanmelden',
     logout_toast: 'Afgemeld',
     login_toast: 'Aangemeld ✓',
@@ -804,6 +831,9 @@ const T = {
     lbl_danger: 'Danger zone',
     btn_reset: 'Delete all data',
     c_ok: '✓ Within quotas',
+    login_sub: 'Sign in to track your collections and access your dashboard.',
+    login_note: 'Your data is saved in the cloud and accessible from any device.',
+    btn_google: 'Continue with Google',
     login: 'Sign in',
     logout_toast: 'Signed out',
     login_toast: 'Signed in ✓',
@@ -873,6 +903,11 @@ function applyLang() {
   document.getElementById('lbl-danger').textContent = t('lbl_danger');
   document.getElementById('btn-reset').textContent = t('btn_reset');
   document.getElementById('auth-label').textContent = currentUser ? (currentUser.displayName?.split(' ')[0] || 'OK') : t('login');
+  if (document.getElementById('login-sub')) {
+    document.getElementById('login-sub').textContent = t('login_sub');
+    document.getElementById('login-note').textContent = t('login_note');
+    document.getElementById('btn-google-login').textContent = t('btn_google');
+  }
 
   // Lang buttons
   ['fr','nl','en'].forEach(l => document.getElementById('lb-'+l).classList.toggle('active', l === lang));
@@ -915,15 +950,30 @@ let config = { persons:2, year:2026, lang:'fr' };
 let entries = [];
 let activeFilter = 'all';
 
-function loadConfig() { const r=localStorage.getItem('tm_config'); if(r) config={...config,...JSON.parse(r)}; }
-function saveConfigLS() { localStorage.setItem('tm_config', JSON.stringify(config)); }
+async function loadUserConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'users', currentUser.uid, 'meta', 'config'));
+    if (snap.exists()) config = { ...config, ...snap.data() };
+  } catch(e) { /* use defaults */ }
+  applyLang();
+  const hc = config.configured;
+  if (hc) showDashboard();
+  else document.getElementById('setup-screen').classList.add('active');
+  document.getElementById('loader').classList.add('hidden');
+}
+async function saveConfigFS() {
+  config.configured = true;
+  if (currentUser && db)
+    await setDoc(doc(db, 'users', currentUser.uid, 'meta', 'config'), config);
+}
 
 // ── SETUP / NAV ──
 window.saveConfig = function() {
   config.persons = parseInt(document.getElementById('cfg-persons').value);
-  saveConfigLS(); showDashboard();
+  saveConfigFS(); showDashboard();
 };
 function showDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
   document.getElementById('setup-screen').classList.remove('active');
   document.getElementById('info-screen').classList.remove('active');
   document.getElementById('dashboard').classList.add('active');
@@ -936,11 +986,7 @@ window.showInfo = function() {
 window.hideInfo = function() { showDashboard(); };
 
 // ── LOCAL ──
-function loadLocalEntries() {
-  const r=localStorage.getItem('tm_entries'); entries=r?JSON.parse(r):[];
-  renderEntries(); renderDashboard();
-}
-function saveLocalEntries() { localStorage.setItem('tm_entries', JSON.stringify(entries)); }
+// localStorage removed — Firebase only
 
 // ── FIREBASE ──
 function listenEntries() {
@@ -949,12 +995,10 @@ function listenEntries() {
   unsubEntries=onSnapshot(q,snap=>{ entries=snap.docs.map(d=>({id:d.id,...d.data()})); renderEntries(); renderDashboard(); });
 }
 async function persistEntry(e) {
-  if(currentUser&&db) await setDoc(doc(db,'users',currentUser.uid,'entries',e.id),e);
-  else saveLocalEntries();
+  await setDoc(doc(db,'users',currentUser.uid,'entries',e.id),e);
 }
 async function removeEntry(id) {
-  if(currentUser&&db) await deleteDoc(doc(db,'users',currentUser.uid,'entries',id));
-  else { entries=entries.filter(e=>e.id!==id); saveLocalEntries(); renderEntries(); renderDashboard(); }
+  await deleteDoc(doc(db,'users',currentUser.uid,'entries',id));
 }
 
 // ── ADD / DELETE ──
@@ -964,7 +1008,6 @@ window.addEntry = function() {
   const kg=parseFloat(document.getElementById('log-kg').value)||0;
   const entry={id:Date.now().toString(),date,type,kg};
   entries.unshift(entry); persistEntry(entry);
-  if(!currentUser){ saveLocalEntries(); renderEntries(); renderDashboard(); }
   document.getElementById('log-kg').value='';
   toast(t('added_toast'));
 };
@@ -1093,11 +1136,21 @@ function updateAuthUI(user) {
   if(user){ lbl.textContent=user.displayName?user.displayName.split(' ')[0]:t('login'); if(user.photoURL){av.src=user.photoURL;av.classList.add('visible');} }
   else { lbl.textContent=t('login'); av.classList.remove('visible'); }
 }
+window.showLoginScreen = function() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-screen').style.flexDirection = 'column';
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('info-screen').classList.remove('active');
+};
+window.signInGoogle = function() {
+  signInWithPopup(auth, new GoogleAuthProvider()).catch(() => toast('Connexion annulée'));
+};
 window.toggleAuth=function(){
-  if(currentUser){ signOut(auth); toast(t('logout_toast')); }
+  if(currentUser){ signOut(auth); toast(t('logout_toast')); showLoginScreen(); }
   else signInWithPopup(auth,new GoogleAuthProvider()).then(()=>toast(t('login_toast'))).catch(()=>toast(t('cancel_toast')));
 };
-function syncBadge(m){ const b=document.getElementById('sync-badge'); b.textContent=m==='cloud'?'CLOUD':'LOCAL'; b.className=`sync-badge ${m==='cloud'?'sync-cloud':'sync-local'}`; }
+function syncBadge(m){ /* always Firebase */ }
 
 // ── SETTINGS ──
 window.openSettings=function(){
@@ -1108,12 +1161,14 @@ window.openSettings=function(){
 window.closeModal=function(){ document.getElementById('moverlay').classList.remove('active'); };
 window.saveSettings=function(){
   config.persons=parseInt(document.getElementById('modal-persons').value);
-  saveConfigLS(); closeModal(); applyLang();
+  saveConfigFS(); closeModal(); applyLang();
   toast(t('saved_toast'));
 };
 window.resetData=function(){
   if(!confirm(t('reset_confirm')))return;
-  entries=[]; saveLocalEntries(); renderEntries(); renderDashboard(); closeModal(); toast(t('reset_toast'));
+  entries=[]; renderEntries(); renderDashboard(); closeModal(); toast(t('reset_toast'));
+  // Also delete all Firestore entries
+  entries.forEach(e => deleteDoc(doc(db,'users',currentUser.uid,'entries',e.id)));
 };
 
 // ── TOAST ──
@@ -1121,13 +1176,12 @@ window.toast=function(msg){ const el=document.getElementById('toast'); el.textCo
 
 // ── INIT ──
 function init(){
-  loadConfig();
   document.getElementById('log-date').valueAsDate=new Date();
+  // applyLang with defaults while waiting for auth
   applyLang();
-  const hc=localStorage.getItem('tm_config');
-  if(hc) showDashboard();
-  else document.getElementById('setup-screen').classList.add('active');
-  setTimeout(()=>{ if(!currentUser) loadLocalEntries(); document.getElementById('loader').classList.add('hidden'); },600);
+  // onAuthStateChanged will take over — show loader until then
+  // Safety fallback: hide loader after 6s even if Firebase hangs
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 6000);
 }
 init();
 </script>
