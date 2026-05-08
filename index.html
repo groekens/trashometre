@@ -168,21 +168,28 @@
     .tot-surplus.no-surplus { color: var(--green-light); }
     .tot-surplus.has-surplus { color: #fff; }
     .tot-sub  { font-size: 0.76rem; color: rgba(255,255,255,0.55); margin-top: 8px; }
-    .tot-bd   { text-align: right; font-size: 0.82rem; line-height: 2; }
-    .c-ok     { color: var(--green-light); font-weight: 600; }
-    .c-over   { color: #fca5a5; font-weight: 600; }
+    .c-ok  { color: var(--green-light); font-weight: 600; }
+    .c-over{ color: #fca5a5; font-weight: 600; }
 
     /* ── CONTAINER CARDS ── */
     .cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 420px) { .cgrid { grid-template-columns: 1fr; } }
     .ccard {
       background: var(--bg-2); border: 1.5px solid var(--border); border-radius: var(--rl);
-      padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--sh);
+      padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--sh);
+      overflow: hidden; position: relative;
     }
     .ccard.cn { border-top: 4px solid var(--grey-cont); }
     .ccard.cv { border-top: 4px solid var(--green); }
-    .ctit { font-family: var(--font-d); font-weight: 800; font-size: 1.05rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .card-hdr { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .ctit { font-family: var(--font-d); font-weight: 800; font-size: 1.05rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); }
     .ctit.tv { color: var(--green-dark); }
+    .surplus-chip {
+      font-family: var(--font-d); font-weight: 700; font-size: 0.75rem;
+      padding: 3px 8px; border-radius: 20px; letter-spacing: 0.03em;
+      background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-brd);
+      align-items: center;
+    }
 
     .met  { display: flex; flex-direction: column; gap: 6px; }
     .mrow { display: flex; justify-content: space-between; align-items: baseline; }
@@ -504,32 +511,51 @@
         <div class="tot-surplus" id="surplus-amount">0 €</div>
         <div class="tot-sub" id="forfait-line">+ forfait <strong id="forfait-amount"></strong> · total <strong id="total-amount-small"></strong></div>
       </div>
-      <div class="tot-bd" id="cost-breakdown"></div>
     </div>
 
     <div class="cgrid">
+      <!-- RÉSIDUEL -->
       <div class="ccard cn">
-        <div class="ctit" id="lbl-residuel">⬛ Résiduel</div>
+        <div class="card-hdr">
+          <span class="ctit" id="lbl-residuel">Résiduel</span>
+          <span class="surplus-chip" id="noir-surplus-chip" style="display:none"></span>
+        </div>
         <div class="met">
-          <div class="mrow"><span class="mlbl" id="lbl-levees-n">Levées</span><span class="mval" id="nlt">0 <span class="q">/ 8</span></span></div>
+          <div class="mrow">
+            <span class="mlbl" id="lbl-levees-n">Levées</span>
+            <span class="mval" id="nlt">0 <span class="q">/ 8</span></span>
+          </div>
           <div class="ptrack"><div id="nlb" class="pfill pok" style="width:0%"></div></div>
           <div id="nls" class="sbdg" style="display:none"></div>
         </div>
         <div class="met">
-          <div class="mrow"><span class="mlbl" id="lbl-poids-n">Poids</span><span class="mval" id="nkt">0 <span class="q">/ 24 kg</span></span></div>
+          <div class="mrow">
+            <span class="mlbl" id="lbl-poids-n">Poids</span>
+            <span class="mval" id="nkt">0 <span class="q">/ 24 kg</span></span>
+          </div>
           <div class="ptrack"><div id="nkb" class="pfill pok" style="width:0%"></div></div>
           <div id="nks" class="sbdg" style="display:none"></div>
         </div>
       </div>
+      <!-- ORGANIQUE -->
       <div class="ccard cv">
-        <div class="ctit tv" id="lbl-organique">🟩 Organique</div>
+        <div class="card-hdr">
+          <span class="ctit tv" id="lbl-organique">Organique</span>
+          <span class="surplus-chip surplus-chip-v" id="vert-surplus-chip" style="display:none"></span>
+        </div>
         <div class="met">
-          <div class="mrow"><span class="mlbl" id="lbl-levees-v">Levées</span><span class="mval" id="vlt">0 <span class="q">/ 20</span></span></div>
+          <div class="mrow">
+            <span class="mlbl" id="lbl-levees-v">Levées</span>
+            <span class="mval" id="vlt">0 <span class="q">/ 20</span></span>
+          </div>
           <div class="ptrack"><div id="vlb" class="pfill pok" style="width:0%"></div></div>
           <div id="vls" class="sbdg" style="display:none"></div>
         </div>
         <div class="met">
-          <div class="mrow"><span class="mlbl" id="lbl-poids-v">Poids</span><span class="mval" id="vkt">0 <span class="q">/ 70 kg</span></span></div>
+          <div class="mrow">
+            <span class="mlbl" id="lbl-poids-v">Poids</span>
+            <span class="mval" id="vkt">0 <span class="q">/ 70 kg</span></span>
+          </div>
           <div class="ptrack"><div id="vkb" class="pfill pok" style="width:0%"></div></div>
           <div id="vks" class="sbdg" style="display:none"></div>
         </div>
@@ -852,12 +878,17 @@ function getQuotas(p) {
 }
 function calcSurcharge(nl, nk, vl, vk, persons) {
   const q=getQuotas(persons), forfait=FORFAITS[Math.min(persons,5)];
-  let cost=forfait, details=[];
-  if(nl>q.noirLevees){const e=nl-q.noirLevees,t1=Math.min(e,4),t2=Math.max(e-4,0),c=t1*1.6+t2*2;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € levées ⬛`);}
-  if(nk>q.noirKg){const pp=(nk-q.noirKg)/persons,c=(Math.min(pp,50)*0.6+Math.min(Math.max(pp-50,0),40)+Math.max(pp-90,0)*2)*persons;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € poids ⬛`);}
-  if(vl>q.vertLevees){const c=(vl-q.vertLevees);cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € levées 🟩`);}
-  if(vk>q.vertKg){const c=(vk-q.vertKg)*0.2;cost+=c;if(c>0)details.push(`+${c.toFixed(2)} € poids 🟩`);}
-  return {cost, details, surcharge:cost-forfait};
+  let cost=forfait;
+  let noirSurcharge=0, vertSurcharge=0;
+  // Noir levées
+  if(nl>q.noirLevees){const e=nl-q.noirLevees,t1=Math.min(e,4),t2=Math.max(e-4,0),c=t1*1.6+t2*2;cost+=c;noirSurcharge+=c;}
+  // Noir poids
+  if(nk>q.noirKg){const pp=(nk-q.noirKg)/persons,c=(Math.min(pp,50)*0.6+Math.min(Math.max(pp-50,0),40)+Math.max(pp-90,0)*2)*persons;cost+=c;noirSurcharge+=c;}
+  // Vert levées
+  if(vl>q.vertLevees){const c=(vl-q.vertLevees);cost+=c;vertSurcharge+=c;}
+  // Vert poids
+  if(vk>q.vertKg){const c=(vk-q.vertKg)*0.2;cost+=c;vertSurcharge+=c;}
+  return {cost, surcharge:cost-forfait, noirSurcharge, vertSurcharge};
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
@@ -1084,23 +1115,19 @@ function getStats() {
     vertLevees: v.length, vertKg: v.reduce((s,e)=>s+(e.kg||0),0),
   };
 }
+const fmt = n => n.toFixed(2).replace('.',',');
 function renderDashboard() {
   const {persons} = config, q = getQuotas(persons), s = getStats();
-  const {cost, details, surcharge} = calcSurcharge(s.noirLevees, s.noirKg, s.vertLevees, s.vertKg, persons);
+  const {cost, surcharge, noirSurcharge, vertSurcharge} = calcSurcharge(s.noirLevees, s.noirKg, s.vertLevees, s.vertKg, persons);
   const forfait = FORFAITS[Math.min(persons,5)];
   document.getElementById('dash-persons').textContent = persons;
   document.getElementById('yr-lbl').innerHTML = t('yr_lbl', persons);
   // Surplus-first display
-  const surplusFmt = surcharge > 0
-    ? `+${surcharge.toFixed(2).replace('.',',')} €`
-    : '0 €';
+  const surplusFmt = surcharge > 0 ? `+${fmt(surcharge)} €` : '0 €';
   document.getElementById('surplus-amount').textContent = surplusFmt;
   document.getElementById('surplus-amount').className = 'tot-surplus ' + (surcharge > 0 ? 'has-surplus' : 'no-surplus');
   document.getElementById('forfait-amount').textContent = `${forfait} €`;
-  document.getElementById('total-amount-small').textContent = `${cost.toFixed(2).replace('.',',')} €`;
-  document.getElementById('cost-breakdown').innerHTML = details.length
-    ? details.map(d=>`<div class="c-over">${d}</div>`).join('')
-    : `<div class="c-ok">${t('c_ok')}</div>`;
+  document.getElementById('total-amount-small').textContent = `${fmt(cost)} €`;
   setMet('nl', s.noirLevees, q.noirLevees, true);
   setMet('nk', s.noirKg,     q.noirKg,     false);
   setMet('vl', s.vertLevees, q.vertLevees, true);
@@ -1109,6 +1136,11 @@ function renderDashboard() {
   document.getElementById('nkt').innerHTML = `${s.noirKg.toFixed(1)} <span class="q">/ ${q.noirKg} kg</span>`;
   document.getElementById('vlt').innerHTML = `${s.vertLevees} <span class="q">/ ${q.vertLevees}</span>`;
   document.getElementById('vkt').innerHTML = `${s.vertKg.toFixed(1)} <span class="q">/ ${q.vertKg} kg</span>`;
+  // Per-container surcharge chips
+  const ns = document.getElementById('noir-surplus-chip');
+  const vs = document.getElementById('vert-surplus-chip');
+  if (noirSurcharge > 0) { ns.textContent = `+${fmt(noirSurcharge)} €`; ns.style.display='inline-flex'; } else { ns.style.display='none'; }
+  if (vertSurcharge > 0) { vs.textContent = `+${fmt(vertSurcharge)} €`; vs.style.display='inline-flex'; } else { vs.style.display='none'; }
   renderForecast(s, q, cost, forfait, persons);
 }
 function setMet(id, val, quota, isL) {
