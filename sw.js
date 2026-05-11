@@ -6,7 +6,7 @@
 //   - Bypass for Firebase (let Firebase handle its own caching)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VERSION = 'v2.1.0';
+const VERSION = 'v2.1.1';
 const APP_CACHE    = `trashometre-app-${VERSION}`;
 const ASSETS_CACHE = `trashometre-assets-${VERSION}`;
 
