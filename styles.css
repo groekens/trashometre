@@ -452,6 +452,38 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.45; cursor: p
 .info-personal .text { font-size: 0.9rem; color: var(--green-deeper); line-height: 1.5; }
 .info-personal .text strong { font-weight: 700; }
 
+/* ── FOOTER ── */
+.app-footer {
+  margin-top: 16px;
+  padding: 24px 0 20px;
+  display: flex; flex-direction: column; gap: 18px;
+  align-items: center;
+  border-top: 1px solid var(--border);
+}
+.footer-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 22px;
+  background: var(--bg-2); border: 1.5px solid var(--border); border-radius: 24px;
+  color: var(--text-2); text-decoration: none;
+  font-family: var(--font-d); font-weight: 700; font-size: 0.98rem;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  transition: all 0.15s; box-shadow: var(--sh);
+  cursor: pointer;
+}
+.footer-btn:hover { border-color: var(--green); color: var(--green-dark); background: var(--green-bg); transform: translateY(-1px); }
+.fb-icon { font-size: 1.15rem; }
+.footer-credits { font-size: 0.82rem; color: var(--text-3); text-align: center; line-height: 1.55; }
+.footer-credits a { color: var(--text-3); text-decoration: underline; text-underline-offset: 2px; }
+.footer-credits a:hover { color: var(--green-dark); }
+
+/* ── FEEDBACK MODAL ── */
+#feedback-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:200; align-items:center; justify-content:center; padding:16px; overflow-y:auto; }
+#feedback-overlay.active { display:flex; }
+.fb-intro { font-size: 0.92rem; color: var(--text-2); line-height: 1.55; margin: -4px 0 4px; }
+textarea.fi { resize: vertical; min-height: 110px; font-family: var(--font-b); line-height: 1.5; }
+.fb-counter { font-size: 0.78rem; color: var(--text-3); text-align: right; margin-top: -2px; }
+.fb-counter.warn { color: var(--warn); }
+
 /* ── LOADER ── */
 #loader { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:999; transition:opacity 0.35s; }
 #loader.hidden { opacity:0; pointer-events:none; }
