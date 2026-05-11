@@ -385,7 +385,8 @@ function setMet(id, val, quota, isLevee) {
   const pct = Math.min((val / quota) * 100, 100);
   const bar = $(id + 'b');
   bar.style.width = pct + '%';
-  bar.className = `pfill ${pct >= 100 ? 'povr' : pct >= 80 ? 'pwrn' : 'pok'}`;
+  // Neutral (color of container) until 90%, warning 90-100%, over above 100%
+  bar.className = `pfill ${val > quota ? 'povr' : pct >= 90 ? 'pwrn' : 'pok'}`;
   const sb = $(id + 's');
   if (val > quota) {
     const extra = val - quota;
