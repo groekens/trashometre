@@ -847,7 +847,7 @@ window.hideInfo = () => show('dashboard');
 window.openFeedback = () => {
   $('fb-message').value = '';
   $('fb-email').value = state.user?.email || '';
-  $('fb-type').value = 'bug';
+  $('fb-type').value = 'question';
   $('fb-counter-current').textContent = '0';
   $('fb-counter-current').parentElement.classList.remove('warn');
   hideFeedbackError();
