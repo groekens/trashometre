@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot,
+  doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, addDoc, serverTimestamp,
   query, collection, orderBy, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
@@ -110,4 +110,19 @@ export async function deleteAllEntries(uid) {
   if (opsInBatch > 0) batches.push(batch.commit());
   await Promise.all(batches);
   return count;
+}
+
+// ── FEEDBACK ─────────────────────────────────────────────────────────────────
+export async function submitFeedback({ type, message, email, userId, userEmail, lang, userAgent }) {
+  const data = {
+    type,
+    message,
+    email: email || null,
+    userId: userId || null,
+    userEmail: userEmail || null,
+    lang: lang || 'fr',
+    userAgent: userAgent || null,
+    createdAt: serverTimestamp(),
+  };
+  await addDoc(collection(db, 'feedback'), data);
 }
