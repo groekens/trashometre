@@ -393,13 +393,17 @@ body.show-install-banner #install-banner { display: flex; }
 }
 .info-link:last-child { border-bottom: none; }
 .info-link:hover { background: var(--green-bg); }
+.info-link > div { flex: 1; min-width: 0; }
 .info-link-multi { /* non-clickable parent with internal interactive parts */
   align-items: flex-start;
   cursor: default;
 }
 .info-link-multi:hover { background: transparent; }
-.il-icon { font-size: 1.5rem; flex-shrink: 0; }
-.info-link-multi .il-icon { padding-top: 2px; }
+.il-icon {
+  font-size: 1.5rem; flex-shrink: 0;
+  line-height: 1; align-self: center;
+}
+.info-link-multi .il-icon { padding-top: 2px; align-self: flex-start; }
 .il-body { flex: 1; min-width: 0; }
 .il-title { font-family: var(--font-d); font-weight: 700; font-size: 1.1rem; color: var(--text); letter-spacing: 0.02em; }
 .il-sub   { font-size: 0.88rem; color: var(--text-2); margin-top: 2px; line-height: 1.5; }
