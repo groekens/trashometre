@@ -68,7 +68,7 @@ export const T = {
     // Log form
     lbl_add: 'Enregistrer une collecte',
     lbl_date: 'Date de la collecte',
-    lbl_kg: 'Poids (kg) — optionnel',
+    lbl_kg: 'Poids (kg, optionnel)',
     lbl_type: 'Type de conteneur',
     rlbl_noir: 'Résiduel',
     rlbl_vert: 'Organique',
@@ -208,7 +208,7 @@ export const T = {
 
     lbl_add: 'Ophalingen registreren',
     lbl_date: 'Datum van ophaling',
-    lbl_kg: 'Gewicht (kg) — optioneel',
+    lbl_kg: 'Gewicht (kg, optioneel)',
     lbl_type: 'Type container',
     rlbl_noir: 'Restafval',
     rlbl_vert: 'Organisch',
@@ -340,7 +340,7 @@ export const T = {
 
     lbl_add: 'Log a collection',
     lbl_date: 'Collection date',
-    lbl_kg: 'Weight (kg) — optional',
+    lbl_kg: 'Weight (kg, optional)',
     lbl_type: 'Container type',
     rlbl_noir: 'Residual',
     rlbl_vert: 'Organic',
