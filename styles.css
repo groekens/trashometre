@@ -56,36 +56,45 @@ body {
 /* ── TOPBAR ── */
 #topbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px; height: 58px;
+  padding: 0 18px; height: 68px;
   background: var(--green-dark);
   position: sticky; top: 0; z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
-.logo { font-family: var(--font-d); font-weight: 900; font-size: 1.5rem; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; color: #fff; }
+.logo { font-family: var(--font-d); font-weight: 900; font-size: 1.9rem; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1; color: #fff; }
 .logo .ac  { color: var(--green-light); }
-.logo .sep { color: rgba(255,255,255,0.4); font-weight: 400; font-size: 0.9rem; margin: 0 6px; }
-.logo .sub { color: rgba(255,255,255,0.65); font-weight: 500; font-size: 0.82rem; text-transform: none; letter-spacing: 0; }
-.tb-right  { display: flex; align-items: center; gap: 8px; }
+.logo .sep { color: rgba(255,255,255,0.4); font-weight: 400; font-size: 1.1rem; margin: 0 8px; }
+.logo .sub { color: rgba(255,255,255,0.7); font-weight: 500; font-size: 1rem; text-transform: none; letter-spacing: 0; }
+.tb-right  { display: flex; align-items: center; gap: 10px; }
 
 #offline-badge {
   display: none;
-  font-size: 0.65rem; font-weight: 700;
-  padding: 3px 8px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
   letter-spacing: 0.06em; text-transform: uppercase;
   background: var(--warn-bg); color: var(--warn);
 }
 body.offline #offline-badge { display: inline-flex; align-items: center; gap: 4px; }
 
 #auth-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 13px; background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 16px; background: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.25); border-radius: var(--r);
-  color: rgba(255,255,255,0.9); font-family: var(--font-b); font-size: 0.82rem;
+  color: rgba(255,255,255,0.95); font-family: var(--font-b); font-size: 0.98rem;
+  font-weight: 500;
   cursor: pointer; transition: all 0.15s;
 }
 #auth-btn:hover { background: rgba(255,255,255,0.25); }
-#auth-btn img { width: 18px; height: 18px; border-radius: 50%; display: none; }
+#auth-btn img { width: 22px; height: 22px; border-radius: 50%; display: none; }
 #auth-btn img.visible { display: block; }
+
+/* Mobile: hide subtitle and slightly tighter spacing */
+@media (max-width: 480px) {
+  #topbar { padding: 0 14px; height: 62px; }
+  .logo { font-size: 1.6rem; }
+  .logo .sep, .logo .sub { display: none; }
+  #auth-btn { font-size: 0.92rem; padding: 8px 12px; }
+}
 
 /* ── TABS (login screen) ── */
 .tab-btn {
