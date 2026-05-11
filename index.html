@@ -249,11 +249,35 @@
     <!-- Info links -->
     <div class="stit" id="lbl-info">Informations utiles</div>
     <div class="info-links">
+      <a class="info-link" href="https://www.recycleapp.be/" target="_blank" rel="noopener">
+        <span class="il-icon">🗓️</span>
+        <div>
+          <div class="il-title" id="lbl-recycle-title">Calendrier des collectes</div>
+          <div class="il-sub" id="lbl-recycle-sub">App Recycle! — dates de passage du camion</div>
+        </div>
+        <span class="il-arrow">↗</span>
+      </a>
+      <a class="info-link" href="https://moninbw.be/" target="_blank" rel="noopener">
+        <span class="il-icon">⚖️</span>
+        <div>
+          <div class="il-title" id="lbl-inbw-title">Mes poids réels (MonInBW)</div>
+          <div class="il-sub" id="lbl-inbw-sub">Kg enregistrés par inBW à chaque collecte</div>
+        </div>
+        <span class="il-arrow">↗</span>
+      </a>
       <a class="info-link" href="https://www.rixensart.be/ma-commune/administration/services-communaux/environnement/collecte-des-dechets/faq-collecte-des-dechets" target="_blank" rel="noopener">
         <span class="il-icon">👶</span>
         <div>
           <div class="il-title" id="lbl-prime-title">Demande de prime / dérogation</div>
           <div class="il-sub" id="lbl-prime-sub">Enfants &lt; 2 ans, raison médicale — site rixensart.be</div>
+        </div>
+        <span class="il-arrow">↗</span>
+      </a>
+      <a class="info-link" href="https://www.rixensart.be/vivre-a-rixensart/rixensart-zero-dechet/primes-zero-dechet/prime-communale-a-lachat-dun-fut-a-compost" target="_blank" rel="noopener">
+        <span class="il-icon">🪴</span>
+        <div>
+          <div class="il-title" id="lbl-compost-title">Prime à l'achat d'un fût à compost</div>
+          <div class="il-sub" id="lbl-compost-sub">Subside communal Rixensart Zéro Déchet</div>
         </div>
         <span class="il-arrow">↗</span>
       </a>
@@ -266,6 +290,17 @@
         <span class="il-arrow">→</span>
       </a>
     </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <button class="footer-btn" id="feedback-link" onclick="openFeedback()">
+        <span class="fb-icon">✉️</span>
+        <span id="lbl-feedback">Nous contacter</span>
+      </button>
+      <div class="footer-credits" id="footer-credits">
+        Trashomètre · barème Rixensart 2026 · <a href="https://github.com/groekens/trashometre" target="_blank" rel="noopener">code source</a>
+      </div>
+    </footer>
 
   </div><!-- /dashboard -->
 
@@ -354,6 +389,42 @@
       <div class="dzlbl" id="lbl-danger">Zone danger</div>
       <button class="btn-s" onclick="doLogout()" id="btn-logout">Se déconnecter</button>
       <button class="btn-danger" onclick="resetData()" id="btn-reset">Effacer toutes les données</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback modal -->
+<div id="feedback-overlay">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:480px;">
+    <div class="mtit" id="lbl-fb-title">Nous contacter</div>
+    <p class="fb-intro" id="lbl-fb-intro">Une question, un bug, une suggestion ? Écrivez-nous, nous lisons tout.</p>
+
+    <div class="fg">
+      <label class="fl" id="lbl-fb-type" for="fb-type">Type de message</label>
+      <select id="fb-type" class="fs">
+        <option value="bug" id="opt-fb-bug">Bug / Problème</option>
+        <option value="suggestion" id="opt-fb-suggestion">Suggestion d'amélioration</option>
+        <option value="question" id="opt-fb-question">Question</option>
+        <option value="other" id="opt-fb-other">Autre</option>
+      </select>
+    </div>
+
+    <div class="fg">
+      <label class="fl" id="lbl-fb-message" for="fb-message">Votre message</label>
+      <textarea id="fb-message" class="fi" rows="5" maxlength="2000" placeholder=""></textarea>
+      <div class="fb-counter"><span id="fb-counter-current">0</span> / 2000</div>
+    </div>
+
+    <div class="fg">
+      <label class="fl" id="lbl-fb-email" for="fb-email">E-mail de réponse <span style="color:var(--text-3);text-transform:none;letter-spacing:0;font-weight:500;" id="lbl-fb-email-opt">(optionnel)</span></label>
+      <input type="email" id="fb-email" class="fi" placeholder="" inputmode="email" />
+    </div>
+
+    <div id="fb-error" class="lerror"></div>
+
+    <div class="mact">
+      <button class="btn-s" onclick="closeFeedback()" id="btn-fb-cancel">Annuler</button>
+      <button class="btn-p" style="flex:1;width:auto" onclick="sendFeedback()" id="btn-fb-send">Envoyer</button>
     </div>
   </div>
 </div>
