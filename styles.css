@@ -280,7 +280,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.45; cursor: p
   background: var(--bg-2); border: 1.5px solid var(--border); border-radius: var(--rl);
   padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--sh);
 }
-.lrow  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lrow  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.lrow .fg { justify-content: end; }
+.lrow .fl { min-height: 2.6em; display: flex; align-items: flex-end; }
 .lrow2 { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
 
 .rgrp { display: flex; gap: 10px; }
