@@ -188,9 +188,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.45; cursor: p
 .ctit { font-family: var(--font-d); font-weight: 800; font-size: 1.2rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); }
 .ctit.tv { color: var(--green-dark); }
 .surplus-chip {
-  font-family: var(--font-d); font-weight: 700; font-size: 0.82rem;
-  padding: 4px 10px; border-radius: 20px; letter-spacing: 0.03em;
-  background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-brd);
+  font-family: var(--font-d); font-weight: 800; font-size: 0.95rem;
+  padding: 5px 12px; border-radius: 20px; letter-spacing: 0.02em;
+  background: var(--danger-bg); color: var(--danger); border: 1.5px solid var(--danger-brd);
   align-items: center;
 }
 
@@ -213,9 +213,10 @@ input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.45; cursor: p
 .ccard.cv .pfill.povr { background: var(--danger); }
 
 .sbdg {
-  font-family: var(--font-d); font-size: 0.78rem; font-weight: 700;
-  padding: 4px 10px; border-radius: 4px; align-self: flex-start;
-  background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-brd);
+  font-family: var(--font-d); font-size: 1rem; font-weight: 800;
+  padding: 6px 14px; border-radius: 6px; align-self: flex-start;
+  background: var(--danger-bg); color: var(--danger); border: 1.5px solid var(--danger-brd);
+  letter-spacing: 0.02em;
 }
 
 /* ── SECTION TITLE ── */
