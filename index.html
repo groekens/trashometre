@@ -3,7 +3,380 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trashomètre · Rixensart 2026</title><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trashomètre · Rixensart 2026</title>
+  <meta name="description" content="Suivez votre consommation de déchets et estimez votre taxe 2026 – Commune de Rixensart" />
+  <meta name="theme-color" content="#1e8f38" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
+  <link rel="shortcut icon" href="icons/favicon.ico" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="loader"><div class="linner" id="loader-txt">Chargement…</div></div>
+
+<header id="topbar">
+  <div class="logo">Trash<span class="ac">omètre</span><span class="sep">·</span><span class="sub">Rixensart</span></div>
+  <div class="tb-right">
+    <span id="offline-badge" title="Hors ligne">⊘ <span id="offline-text">Offline</span></span>
+    <button id="auth-btn" onclick="toggleAuth()">
+      <img id="user-avatar" src="" alt="" />
+      <span id="auth-label">Connexion</span>
+    </button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:0;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-family:var(--font-d);font-weight:900;font-size:2.8rem;text-transform:uppercase;line-height:1;color:var(--text)">
+          Trash<span style="color:var(--green-dark)">omètre</span>
+        </div>
+        <div style="font-size:0.95rem;color:var(--text-3);margin-top:8px;line-height:1.6" id="login-sub">
+          Connectez-vous pour suivre vos collectes.
+        </div>
+      </div>
+
+      <div style="display:flex;background:var(--bg-3);border-radius:var(--r);padding:3px;margin-bottom:20px;">
+        <button class="tab-btn tab-active" id="tab-signin"   onclick="switchTab('login')"   >Connexion</button>
+        <button class="tab-btn"            id="tab-register" onclick="switchTab('register')">Créer un compte</button>
+      </div>
+
+      <div id="form-login" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="fg">
+          <label class="fl" id="lbl-email" for="auth-email">Adresse e-mail</label>
+          <input type="email" id="auth-email" class="fi" placeholder="vous@example.com" autocomplete="email" inputmode="email" />
+        </div>
+        <div class="fg">
+          <label class="fl" id="lbl-password" for="auth-password">Mot de passe</label>
+          <input type="password" id="auth-password" class="fi" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="auth-error" style="font-size:0.82rem;color:var(--danger);display:none;padding:8px 12px;background:var(--danger-bg);border-radius:var(--r);border:1px solid var(--danger-brd);"></div>
+        <button onclick="doSignIn()" class="btn-p" id="btn-signin">Se connecter</button>
+        <button onclick="doResetPassword()" id="btn-forgot" style="background:none;border:none;color:var(--text-3);font-size:0.83rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:2px 0;font-family:var(--font-b);">Mot de passe oublié ?</button>
+      </div>
+
+      <div id="form-register" style="display:none;flex-direction:column;gap:12px;">
+        <div class="fg">
+          <label class="fl" id="lbl-email-r" for="auth-email-r">Adresse e-mail</label>
+          <input type="email" id="auth-email-r" class="fi" placeholder="vous@example.com" autocomplete="email" inputmode="email" />
+        </div>
+        <div class="fg">
+          <label class="fl" id="lbl-password-r" for="auth-password-r">Mot de passe</label>
+          <input type="password" id="auth-password-r" class="fi" placeholder="8 caractères minimum" autocomplete="new-password" />
+        </div>
+        <div class="fg">
+          <label class="fl" id="lbl-password-r2" for="auth-password-r2">Confirmer le mot de passe</label>
+          <input type="password" id="auth-password-r2" class="fi" placeholder="••••••••" autocomplete="new-password" />
+        </div>
+        <div id="register-error" style="font-size:0.82rem;color:var(--danger);display:none;padding:8px 12px;background:var(--danger-bg);border-radius:var(--r);border:1px solid var(--danger-brd);"></div>
+        <button onclick="doRegister()" class="btn-p" id="btn-register">Créer mon compte</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin:20px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:0.75rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">ou</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+
+      <button onclick="signInGoogle()" class="login-btn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span id="btn-google-login">Continuer avec Google</span>
+      </button>
+
+      <div style="font-size:0.73rem;color:var(--text-3);text-align:center;margin-top:16px;line-height:1.6" id="login-note">
+        Vos données sont sauvegardées dans le cloud.
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup-screen">
+    <div>
+      <div class="setup-title" id="s-title">Configurez<br/><span class="hl">votre ménage</span></div>
+      <p class="setup-sub" id="s-sub" style="margin-top:12px">Quelques informations pour calculer vos quotas et votre taxe selon le barème Rixensart 2026.</p>
+    </div>
+    <div class="fg">
+      <label class="fl" id="l-persons" for="cfg-persons">Nombre de personnes dans le ménage</label>
+      <select id="cfg-persons" class="fs">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5+</option>
+      </select>
+    </div>
+    <button class="btn-p" onclick="saveConfig()" id="btn-start">Commencer le suivi →</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="yr-hdr">
+      <span class="yr-lbl" id="yr-lbl">Bilan 2026 — <span id="dash-persons"></span> pers.</span>
+      <button class="cfg-btn" onclick="openSettings()">⚙ <span id="lbl-settings">Paramètres</span></button>
+    </div>
+
+    <!-- Total cost card -->
+    <div class="tot-card">
+      <div style="flex:1;">
+        <div class="tot-lbl" id="lbl-current-cost">Surcoût en cours</div>
+        <div class="tot-surplus" id="surplus-amount">0 €</div>
+        <div class="tot-sub" id="forfait-line-text"></div>
+      </div>
+    </div>
+
+    <!-- Containers -->
+    <div class="cgrid">
+      <div class="ccard cn">
+        <div class="card-hdr">
+          <span class="ctit" id="lbl-residuel">Résiduel</span>
+          <span class="surplus-chip" id="noir-surplus-chip" style="display:none"></span>
+        </div>
+        <div class="met">
+          <div class="mrow">
+            <span class="mlbl" id="lbl-levees-n">Levées</span>
+            <span class="mval" id="nlt">0 <span class="q">/ 8</span></span>
+          </div>
+          <div class="ptrack"><div id="nlb" class="pfill pok" style="width:0%"></div></div>
+          <div id="nls" class="sbdg" style="display:none"></div>
+        </div>
+        <div class="met">
+          <div class="mrow">
+            <span class="mlbl" id="lbl-poids-n">Poids</span>
+            <span class="mval" id="nkt">0 <span class="q">/ 24 kg</span></span>
+          </div>
+          <div class="ptrack"><div id="nkb" class="pfill pok" style="width:0%"></div></div>
+          <div id="nks" class="sbdg" style="display:none"></div>
+        </div>
+      </div>
+
+      <div class="ccard cv">
+        <div class="card-hdr">
+          <span class="ctit tv" id="lbl-organique">Organique</span>
+          <span class="surplus-chip" id="vert-surplus-chip" style="display:none"></span>
+        </div>
+        <div class="met">
+          <div class="mrow">
+            <span class="mlbl" id="lbl-levees-v">Levées</span>
+            <span class="mval" id="vlt">0 <span class="q">/ 20</span></span>
+          </div>
+          <div class="ptrack"><div id="vlb" class="pfill pok" style="width:0%"></div></div>
+          <div id="vls" class="sbdg" style="display:none"></div>
+        </div>
+        <div class="met">
+          <div class="mrow">
+            <span class="mlbl" id="lbl-poids-v">Poids</span>
+            <span class="mval" id="vkt">0 <span class="q">/ 70 kg</span></span>
+          </div>
+          <div class="ptrack"><div id="vkb" class="pfill pok" style="width:0%"></div></div>
+          <div id="vks" class="sbdg" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forecast -->
+    <div class="fcast" id="forecast-card">
+      <div class="stit" id="lbl-projection">Projection fin d'année</div>
+      <div class="fgrid">
+        <div><div class="filbl" id="lbl-proj-cost">Coût total projeté</div><div class="fival" id="proj-cost">—</div></div>
+        <div><div class="filbl" id="lbl-proj-over">Dont surcoût estimé</div><div class="fival" id="proj-over">—</div></div>
+        <div><div class="filbl" id="lbl-proj-nl">Levées ⬛ restantes</div><div class="fival" id="proj-nl">—</div></div>
+        <div><div class="filbl" id="lbl-proj-vl">Levées 🟩 restantes</div><div class="fival" id="proj-vl">—</div></div>
+      </div>
+      <div class="fnote" id="fnote"></div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="stit" id="lbl-chart">Évolution mensuelle</div>
+      <div class="chart-wrap"><canvas id="chart-canvas"></canvas></div>
+    </div>
+
+    <!-- Log form -->
+    <div class="stit" id="lbl-add-title">Enregistrer une collecte</div>
+    <div class="lform">
+      <div class="lrow">
+        <div class="fg">
+          <label class="fl" id="lbl-date" for="log-date">Date de la collecte</label>
+          <input type="date" id="log-date" class="fi" />
+        </div>
+        <div class="fg">
+          <label class="fl" id="lbl-kg" for="log-kg">Poids (kg) — optionnel</label>
+          <input type="number" id="log-kg" class="fi" min="0" max="200" step="0.5" placeholder="0" inputmode="decimal" />
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl" id="lbl-type">Type de conteneur</label>
+        <div class="rgrp">
+          <label class="ropt rn">
+            <input type="radio" name="log-type" value="noir" checked />
+            <span class="rlbl" id="rlbl-noir">Résiduel</span>
+          </label>
+          <label class="ropt rv">
+            <input type="radio" name="log-type" value="vert" />
+            <span class="rlbl" id="rlbl-vert">Organique</span>
+          </label>
+        </div>
+      </div>
+      <div class="lerror" id="log-error"></div>
+      <div class="lrow2">
+        <div class="lhint" id="lbl-hint">Chaque enregistrement = 1 levée.</div>
+        <button class="btn-add" onclick="addEntry()" id="btn-add">+ Ajouter</button>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="stit" id="lbl-history">Historique</div>
+    <div class="filter-bar">
+      <button class="filt-btn active-all" id="filt-all"   onclick="setFilter('all')"  >Tous</button>
+      <button class="filt-btn"            id="filt-noir"  onclick="setFilter('noir')" >Résiduel</button>
+      <button class="filt-btn"            id="filt-vert"  onclick="setFilter('vert')" >Organique</button>
+    </div>
+    <div class="elist" id="elist">
+      <div class="empty"><span class="ico">🗑️</span></div>
+    </div>
+
+    <!-- Info links -->
+    <div class="stit" id="lbl-info">Informations utiles</div>
+    <div class="info-links">
+      <a class="info-link" href="https://www.rixensart.be/ma-commune/administration/services-communaux/environnement/collecte-des-dechets/faq-collecte-des-dechets" target="_blank" rel="noopener">
+        <span class="il-icon">👶</span>
+        <div>
+          <div class="il-title" id="lbl-prime-title">Demande de prime / dérogation</div>
+          <div class="il-sub" id="lbl-prime-sub">Enfants &lt; 2 ans, raison médicale — site rixensart.be</div>
+        </div>
+        <span class="il-arrow">↗</span>
+      </a>
+      <a class="info-link" href="#" onclick="showInfo(); return false;">
+        <span class="il-icon">📄</span>
+        <div>
+          <div class="il-title" id="lbl-taxe-title">Comprendre le calcul de la taxe</div>
+          <div class="il-sub" id="lbl-taxe-sub">Barème complet 2026 — adapté à votre ménage</div>
+        </div>
+        <span class="il-arrow">→</span>
+      </a>
+    </div>
+
+  </div><!-- /dashboard -->
+
+  <!-- INFO -->
+  <div id="info-screen">
+    <button class="back-btn" onclick="hideInfo()">← <span id="lbl-back">Retour</span></button>
+
+    <div class="info-personal">
+      <span class="icon">👥</span>
+      <span class="text" id="info-personal-text"></span>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-hdr">
+        <h2 id="info-title">Calcul de la taxe déchets 2026</h2>
+        <p id="info-sub">Commune de Rixensart — Conteneurs à puce</p>
+      </div>
+      <table class="info-table">
+        <tr><th colspan="2">Taxe forfaitaire annuelle</th></tr>
+        <tbody id="info-forfait-tbody"></tbody>
+      </table>
+
+      <div class="info-section-hdr"><div>Service minimum (inclus)</div></div>
+      <table class="info-table">
+        <thead>
+          <tr><th>Type</th><th>Levées</th><th>Poids</th></tr>
+        </thead>
+        <tbody id="info-included-tbody"></tbody>
+      </table>
+
+      <div class="info-section-hdr"><div>Tarifs proportionnels (au-delà du minimum)</div></div>
+      <table class="info-table">
+        <tr><th colspan="2">⬛ Levées supplémentaires</th></tr>
+        <tr><td>9e à 12e levée</td><td>1,60 €/levée</td></tr>
+        <tr><td>13e levée et +</td><td>2,00 €/levée</td></tr>
+        <tr><th colspan="2">⬛ Poids supplémentaire (par habitant/an)</th></tr>
+        <tr><td>Jusqu'à 50 kg/pers</td><td>0,60 €/kg</td></tr>
+        <tr><td>51 à 90 kg/pers</td><td>1,00 €/kg</td></tr>
+        <tr><td>Au-delà de 90 kg/pers</td><td>2,00 €/kg</td></tr>
+        <tr><th colspan="2">🟩 Levées supplémentaires</th></tr>
+        <tr><td>Toute levée au-delà de 20</td><td>1,00 €/levée</td></tr>
+        <tr><th colspan="2">🟩 Poids supplémentaire</th></tr>
+        <tr><td>Au-delà du quota</td><td>0,20 €/kg/habitant/an</td></tr>
+      </table>
+      <div class="info-note">Les tarifs sont applicables pour l'année 2026. La taxe forfaitaire est due indépendamment de la consommation.</div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<!-- Update available banner -->
+<div id="update-banner">
+  <span class="ub-text">Une nouvelle version est disponible.</span>
+  <button id="update-apply">Mettre à jour</button>
+</div>
+
+<!-- Settings modal -->
+<div id="moverlay">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mtit" id="lbl-modal-title">Paramètres</div>
+    <div class="fg">
+      <label class="fl" id="lbl-modal-persons" for="modal-persons">Nombre de personnes</label>
+      <select id="modal-persons" class="fs">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5+</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl" id="lbl-lang">Langue / Language / Taal</label>
+      <div class="lang-grp">
+        <button class="lang-btn active" id="lb-fr" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn"        id="lb-nl" onclick="setLang('nl')">NL</button>
+        <button class="lang-btn"        id="lb-en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+    <div class="mact">
+      <button class="btn-s" onclick="closeModal()" id="btn-cancel">Annuler</button>
+      <button class="btn-p" style="flex:1;width:auto" onclick="saveSettings()" id="btn-save">Enregistrer</button>
+    </div>
+    <div class="dzne">
+      <div class="dzlbl" id="lbl-danger">Zone danger</div>
+      <button class="btn-s" onclick="doLogout()" id="btn-logout">Se déconnecter</button>
+      <button class="btn-danger" onclick="resetData()" id="btn-reset">Effacer toutes les données</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div id="confirm-overlay">
+  <div class="confirm-modal" onclick="event.stopPropagation()">
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="mact">
+      <button class="btn-s" id="confirm-no">Annuler</button>
+      <button class="btn-danger" id="confirm-yes" style="flex:1">OK</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
   <meta name="description" content="Suivez votre consommation de déchets et estimez votre taxe 2026 – Commune de Rixensart" />
   <meta name="theme-color" content="#f7f6f0" />
   <link rel="manifest" href="manifest.json" />
