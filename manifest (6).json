@@ -1,0 +1,49 @@
+{
+  "name": "Trashomètre Rixensart",
+  "short_name": "Trashomètre",
+  "description": "Suivez votre consommation de déchets et estimez votre taxe 2026 — Commune de Rixensart",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#f7f6f0",
+  "theme_color": "#1e8f38",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["utilities", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ajouter une collecte",
+      "short_name": "Ajouter",
+      "description": "Enregistrer rapidement une collecte",
+      "url": "./?action=add",
+      "icons": [{ "src": "icons/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
