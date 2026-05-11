@@ -703,6 +703,29 @@ function applyLang() {
   setText('lbl-prime-sub',    t('prime_sub'));
   setText('lbl-taxe-title',   t('taxe_title'));
   setText('lbl-taxe-sub',     t('taxe_sub'));
+  setText('lbl-recycle-title',t('recycle_title'));
+  setText('lbl-recycle-sub',  t('recycle_sub'));
+  setText('lbl-inbw-title',   t('inbw_title'));
+  setText('lbl-inbw-sub',     t('inbw_sub'));
+  setText('lbl-compost-title',t('compost_title'));
+  setText('lbl-compost-sub',  t('compost_sub'));
+  setText('lbl-feedback',     t('feedback_label'));
+
+  // Feedback modal
+  setText('lbl-fb-title',     t('fb_title'));
+  setText('lbl-fb-intro',     t('fb_intro'));
+  setText('lbl-fb-type',      t('lbl_fb_type'));
+  setText('lbl-fb-message',   t('lbl_fb_message'));
+  setText('lbl-fb-email',     t('lbl_fb_email'));
+  setText('lbl-fb-email-opt', t('lbl_fb_email_opt'));
+  setText('opt-fb-bug',        t('opt_fb_bug'));
+  setText('opt-fb-suggestion', t('opt_fb_suggestion'));
+  setText('opt-fb-question',   t('opt_fb_question'));
+  setText('opt-fb-other',      t('opt_fb_other'));
+  setText('btn-fb-cancel',     t('btn_fb_cancel'));
+  setText('btn-fb-send',       t('btn_fb_send'));
+  const fbMsg = $('fb-message'); if (fbMsg) fbMsg.placeholder = t('placeholder_fb_message');
+  const fbEm  = $('fb-email');   if (fbEm)  fbEm.placeholder  = t('placeholder_fb_email');
   setText('lbl-add-title',    t('lbl_add'));
   setText('lbl-date',         t('lbl_date'));
   setText('lbl-kg',           t('lbl_kg'));
@@ -796,6 +819,92 @@ window.showInfo = () => {
   show('info-screen');
 };
 window.hideInfo = () => show('dashboard');
+
+// ── FEEDBACK ──────────────────────────────────────────────────────────────────
+window.openFeedback = () => {
+  $('fb-message').value = '';
+  $('fb-email').value = state.user?.email || '';
+  $('fb-type').value = 'bug';
+  $('fb-counter-current').textContent = '0';
+  $('fb-counter-current').parentElement.classList.remove('warn');
+  hideFeedbackError();
+  $('feedback-overlay').classList.add('active');
+  setTimeout(() => $('fb-message').focus(), 50);
+};
+window.closeFeedback = () => {
+  $('feedback-overlay').classList.remove('active');
+};
+
+function showFeedbackError(msg) {
+  const el = $('fb-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function hideFeedbackError() {
+  $('fb-error').classList.remove('visible');
+}
+
+window.sendFeedback = async () => {
+  const type    = $('fb-type').value;
+  const message = $('fb-message').value.trim();
+  const email   = $('fb-email').value.trim();
+
+  hideFeedbackError();
+  if (!message) {
+    showFeedbackError(t('err_fb_empty'));
+    $('fb-message').focus();
+    return;
+  }
+  if (message.length < 10) {
+    showFeedbackError(t('err_fb_short'));
+    $('fb-message').focus();
+    return;
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFeedbackError(t('err_fb_email'));
+    $('fb-email').focus();
+    return;
+  }
+
+  const btn = $('btn-fb-send');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    await Data.submitFeedback({
+      type,
+      message,
+      email: email || null,
+      userId: state.user?.uid || null,
+      userEmail: state.user?.email || null,
+      lang: getLang(),
+      userAgent: navigator.userAgent.slice(0, 200),
+    });
+    closeFeedback();
+    toast(t('fb_sent_toast'), 'success');
+  } catch (e) {
+    console.error('Feedback error', e);
+    showFeedbackError(t(navigator.onLine ? 'error_generic' : 'error_offline'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = t('btn_fb_send');
+  }
+};
+
+// Character counter on textarea
+$('fb-message').addEventListener('input', e => {
+  const len = e.target.value.length;
+  $('fb-counter-current').textContent = len;
+  $('fb-counter-current').parentElement.classList.toggle('warn', len > 1800);
+});
+
+// Click outside / Escape to close feedback modal
+$('feedback-overlay').addEventListener('click', e => {
+  if (e.target === $('feedback-overlay')) closeFeedback();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('feedback-overlay').classList.contains('active')) closeFeedback();
+});
 
 // ── MODAL: click-outside, escape ──────────────────────────────────────────────
 $('moverlay').addEventListener('click', (e) => {
