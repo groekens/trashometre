@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User-scoped data: only owner can read/write their own data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Stricter validation on entries
+    match /users/{userId}/entries/{entryId} {
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['id', 'date', 'type', 'kg'])
+        && request.resource.data.type in ['noir', 'vert']
+        && request.resource.data.kg is number
+        && request.resource.data.kg >= 0
+        && request.resource.data.kg <= 200
+        && request.resource.data.date is string
+        && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Config: validation on persons and lang
+    match /users/{userId}/meta/config {
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.persons is number
+        && request.resource.data.persons >= 1
+        && request.resource.data.persons <= 5
+        && (!('lang' in request.resource.data) ||
+            request.resource.data.lang in ['fr', 'nl', 'en']);
+    }
+  }
+}
