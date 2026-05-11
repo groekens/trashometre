@@ -844,6 +844,49 @@ function hideFeedbackError() {
   $('fb-error').classList.remove('visible');
 }
 
+// Web3Forms endpoint (sends emails to info@trashometre.be)
+const WEB3FORMS_ACCESS_KEY = '0ae4a30d-d721-46c1-bc3b-1420c6587521';
+
+async function sendViaWeb3Forms({ type, message, email, userEmail, lang }) {
+  const typeLabels = {
+    bug: '🐛 Bug / Problème',
+    suggestion: '💡 Suggestion',
+    question: '❓ Question',
+    other: '✉️ Autre',
+  };
+
+  // Reply-to logic: prefer the email field entered by the user, then their account email
+  const replyTo = email || userEmail || '';
+
+  const body = {
+    access_key: WEB3FORMS_ACCESS_KEY,
+    subject: `[Trashomètre] ${typeLabels[type] || type} — nouveau message`,
+    from_name: 'Trashomètre',
+    message,
+    // Custom fields shown in the email body
+    Type: typeLabels[type] || type,
+    Compte: userEmail || '(non connecté)',
+    'E-mail de réponse': email || '(non fourni)',
+    Langue: lang,
+    Date: new Date().toLocaleString('fr-BE', { timeZone: 'Europe/Brussels' }),
+    // Reply-to: clicking "reply" in Gmail goes directly to the user
+    ...(replyTo ? { replyto: replyTo } : {}),
+    // Honeypot anti-bot field (must stay empty)
+    botcheck: '',
+  };
+
+  const res = await fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || `Web3Forms HTTP ${res.status}`);
+  }
+}
+
 window.sendFeedback = async () => {
   const type    = $('fb-type').value;
   const message = $('fb-message').value.trim();
@@ -870,24 +913,43 @@ window.sendFeedback = async () => {
   btn.disabled = true;
   btn.textContent = '…';
 
+  const payload = {
+    type,
+    message,
+    email: email || null,
+    userId: state.user?.uid || null,
+    userEmail: state.user?.email || null,
+    lang: getLang(),
+    userAgent: navigator.userAgent.slice(0, 200),
+  };
+
+  let emailOk = false;
+  let firestoreOk = false;
+
+  // Primary: send by email via Web3Forms
   try {
-    await Data.submitFeedback({
-      type,
-      message,
-      email: email || null,
-      userId: state.user?.uid || null,
-      userEmail: state.user?.email || null,
-      lang: getLang(),
-      userAgent: navigator.userAgent.slice(0, 200),
-    });
+    await sendViaWeb3Forms(payload);
+    emailOk = true;
+  } catch (e) {
+    console.warn('Web3Forms failed, will rely on Firestore:', e);
+  }
+
+  // Backup: write to Firestore (best-effort, doesn't block UX if email worked)
+  try {
+    await Data.submitFeedback(payload);
+    firestoreOk = true;
+  } catch (e) {
+    console.warn('Firestore feedback write failed:', e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = t('btn_fb_send');
+
+  if (emailOk || firestoreOk) {
     closeFeedback();
     toast(t('fb_sent_toast'), 'success');
-  } catch (e) {
-    console.error('Feedback error', e);
+  } else {
     showFeedbackError(t(navigator.onLine ? 'error_generic' : 'error_offline'));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = t('btn_fb_send');
   }
 };
 
