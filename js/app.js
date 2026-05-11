@@ -706,7 +706,7 @@ function applyLang() {
   setText('lbl-recycle-title',t('recycle_title'));
   setText('lbl-recycle-sub',  t('recycle_sub'));
   setText('lbl-inbw-title',   t('inbw_title'));
-  setText('lbl-inbw-sub',     t('inbw_sub'));
+  setHTML('lbl-inbw-sub',     t('inbw_sub_html'));
   setText('lbl-compost-title',t('compost_title'));
   setText('lbl-compost-sub',  t('compost_sub'));
   setText('lbl-feedback',     t('feedback_label'));
@@ -726,6 +726,29 @@ function applyLang() {
   setText('btn-fb-send',       t('btn_fb_send'));
   const fbMsg = $('fb-message'); if (fbMsg) fbMsg.placeholder = t('placeholder_fb_message');
   const fbEm  = $('fb-email');   if (fbEm)  fbEm.placeholder  = t('placeholder_fb_email');
+
+  // Install banner & modal
+  setText('install-banner-title', t('install_banner_title'));
+  setText('install-banner-cta',   t('install_banner_cta'));
+  setText('install-title',        t('install_title'));
+  setText('install-sub',          t('install_sub'));
+  setText('ios-step1-title',      t('ios_step1_title'));
+  setText('ios-step1-text',       t('ios_step1_text'));
+  setText('ios-step2-title',      t('ios_step2_title'));
+  setText('ios-step2-text',       t('ios_step2_text'));
+  setText('ios-step3-title',      t('ios_step3_title'));
+  setText('ios-step3-text',       t('ios_step3_text'));
+  setText('and-step1-title',      t('and_step1_title'));
+  setText('and-step1-text',       t('and_step1_text'));
+  setText('and-step2-title',      t('and_step2_title'));
+  setText('and-step2-text',       t('and_step2_text'));
+  setText('and-step3-title',      t('and_step3_title'));
+  setText('and-step3-text',       t('and_step3_text'));
+  setText('install-why-title',    t('install_why_title'));
+  setText('iw-1', t('iw_1'));
+  setText('iw-2', t('iw_2'));
+  setText('iw-3', t('iw_3'));
+  setText('lbl-native-install',   t('lbl_native_install'));
   setText('lbl-add-title',    t('lbl_add'));
   setText('lbl-date',         t('lbl_date'));
   setText('lbl-kg',           t('lbl_kg'));
@@ -1020,3 +1043,93 @@ if ('serviceWorker' in navigator) {
     });
   }).catch(() => {});
 }
+
+// ── PWA INSTALL PROMPT ────────────────────────────────────────────────────────
+// Shows a discreet banner on iOS Safari and Android Chrome when the app
+// isn't installed yet. Dismissible, remembered for 30 days.
+const INSTALL_DISMISS_KEY = 'trashometre.install.dismissedUntil';
+let deferredInstallPrompt = null;  // populated by `beforeinstallprompt` (Android)
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function isStandalone() {
+  // iOS uses navigator.standalone, others use display-mode media query
+  return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+}
+function isBannerDismissed() {
+  const ts = parseInt(localStorage.getItem(INSTALL_DISMISS_KEY) || '0', 10);
+  return Date.now() < ts;
+}
+
+function maybeShowInstallBanner() {
+  // Hide if app is already installed, or user has dismissed recently
+  if (isStandalone() || isBannerDismissed()) return;
+  // Only show on mobile-ish devices (don't bother desktop users)
+  const isMobile = isIOS() || /Android/i.test(navigator.userAgent);
+  if (!isMobile) return;
+  // Show after a tiny delay so it doesn't fight with the loader
+  setTimeout(() => {
+    document.body.classList.add('show-install-banner');
+  }, 1200);
+}
+
+window.dismissInstallBanner = () => {
+  document.body.classList.remove('show-install-banner');
+  // Remember dismissal for 30 days
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+  localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + thirtyDays));
+};
+
+window.openInstallGuide = () => {
+  // Show iOS or Android steps depending on platform
+  const ios = isIOS();
+  $('install-ios').style.display     = ios ? 'block' : 'none';
+  $('install-android').style.display = ios ? 'none' : 'block';
+  // Native install button only on Android Chrome (when beforeinstallprompt has fired)
+  $('native-install-btn').style.display = (!ios && deferredInstallPrompt) ? 'block' : 'none';
+  $('install-overlay').classList.add('active');
+  // Hide the floating banner while modal is open
+  document.body.classList.remove('show-install-banner');
+};
+
+window.closeInstallGuide = () => {
+  $('install-overlay').classList.remove('active');
+};
+
+window.triggerNativeInstall = async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  try {
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      closeInstallGuide();
+      // Permanently dismiss banner
+      localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000));
+    }
+  } catch (e) { /* ignore */ }
+  deferredInstallPrompt = null;
+};
+
+// Click outside / Escape to close install modal
+$('install-overlay').addEventListener('click', (e) => {
+  if (e.target === $('install-overlay')) closeInstallGuide();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('install-overlay').classList.contains('active')) closeInstallGuide();
+});
+
+// Chrome/Edge/Android: capture the prompt event for one-tap install
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+
+// Hide banner if app gets installed during the session
+window.addEventListener('appinstalled', () => {
+  document.body.classList.remove('show-install-banner');
+  deferredInstallPrompt = null;
+});
+
+maybeShowInstallBanner();
