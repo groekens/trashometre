@@ -122,6 +122,36 @@ body.offline #offline-badge { display: inline-flex; align-items: center; gap: 4p
 .login-btn:hover { opacity: 0.88; }
 .login-btn:active { transform: scale(0.98); }
 
+/* ── LOGIN NOTICE (Rixensart-only) ── */
+.login-notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  margin-top: 22px; padding: 14px 16px;
+  background: var(--green-bg); border: 1.5px solid var(--green-border);
+  border-radius: var(--rl);
+}
+.ln-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; padding-top: 2px; }
+.ln-body { flex: 1; min-width: 0; }
+.ln-title {
+  font-family: var(--font-d); font-weight: 800; font-size: 0.95rem;
+  letter-spacing: 0.02em; color: var(--green-deeper);
+  margin-bottom: 4px;
+}
+.ln-text {
+  font-size: 0.88rem; color: var(--green-deeper);
+  line-height: 1.5; opacity: 0.9;
+}
+.ln-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px; padding: 8px 14px;
+  background: var(--green-dark); color: #fff;
+  border-radius: 8px; text-decoration: none;
+  font-family: var(--font-d); font-weight: 700; font-size: 0.85rem;
+  letter-spacing: 0.03em; text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+}
+.ln-cta:hover { background: var(--green); }
+.ln-cta:active { transform: scale(0.98); }
+
 /* ── LAYOUT ── */
 #app { flex: 1; padding: 16px; max-width: 700px; margin: 0 auto; width: 100%; }
 
@@ -390,10 +420,13 @@ body.show-install-banner #install-banner { display: flex; }
   border-bottom: 1px solid var(--border);
   transition: background 0.15s;
   color: inherit;
+  cursor: pointer;
 }
 .info-link:last-child { border-bottom: none; }
 .info-link:hover { background: var(--green-bg); }
-.info-link > div { flex: 1; min-width: 0; }
+/* Both anonymous div wrappers and explicit .il-body should expand */
+.info-link > div,
+.info-link > .il-body { flex: 1; min-width: 0; }
 .info-link-multi { /* non-clickable parent with internal interactive parts */
   align-items: flex-start;
   cursor: default;
