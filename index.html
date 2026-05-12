@@ -84,6 +84,11 @@
   <!-- LOGIN -->
   <div id="login-screen">
     <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:0;">
+      <div class="login-lang-switcher" role="group" aria-label="Choix de la langue">
+        <button class="lls-btn" id="lls-fr" onclick="setLang('fr')">FR</button>
+        <button class="lls-btn" id="lls-nl" onclick="setLang('nl')">NL</button>
+        <button class="lls-btn" id="lls-en" onclick="setLang('en')">EN</button>
+      </div>
       <div style="text-align:center;margin-bottom:32px;">
         <div style="font-family:var(--font-d);font-weight:900;font-size:2.8rem;text-transform:uppercase;line-height:1;color:var(--text)">
           Trash<span style="color:var(--green-dark)">omètre</span>
