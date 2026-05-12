@@ -110,6 +110,28 @@ body.offline #offline-badge { display: inline-flex; align-items: center; gap: 4p
 }
 
 /* ── LOGIN BUTTONS ── */
+.login-lang-switcher {
+  display: flex; gap: 4px;
+  align-self: flex-end;
+  margin-bottom: 20px;
+  background: var(--bg-3);
+  border-radius: 20px;
+  padding: 3px;
+}
+.lls-btn {
+  border: none; background: transparent;
+  font-family: var(--font-d); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.06em;
+  padding: 5px 11px; border-radius: 16px;
+  color: var(--text-3); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.lls-btn:hover { color: var(--text); }
+.lls-btn.active {
+  background: var(--bg-2); color: var(--green-dark);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
 .login-btn {
   display: flex; align-items: center; justify-content: center; gap: 12px;
   padding: 13px 20px; border-radius: var(--r);
