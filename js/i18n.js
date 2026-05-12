@@ -12,7 +12,7 @@ export const T = {
   fr: {
     // Loader / login
     loading: 'Chargement…',
-    login_sub: 'Connectez-vous pour suivre vos collectes.',
+    login_sub: 'Connectez-vous pour suivre votre taxe déchets.',
     login_note: 'Vos données sont sauvegardées dans le cloud.',
     ln_title: 'Service disponible pour Rixensart',
     ln_text: "L'app calcule actuellement la taxe selon le barème de la commune de Rixensart uniquement.",
@@ -210,7 +210,7 @@ export const T = {
 
   nl: {
     loading: 'Laden…',
-    login_sub: 'Meld u aan om uw ophalingen te volgen.',
+    login_sub: 'Meld u aan om uw afvalbelasting op te volgen.',
     login_note: 'Uw gegevens worden opgeslagen in de cloud.',
     ln_title: 'Beschikbaar voor Rixensart',
     ln_text: 'De app berekent momenteel enkel de belasting volgens het tarief van de gemeente Rixensart.',
@@ -393,7 +393,7 @@ export const T = {
 
   en: {
     loading: 'Loading…',
-    login_sub: 'Sign in to track your collections.',
+    login_sub: 'Sign in to track your waste tax.',
     login_note: 'Your data is saved in the cloud and accessible from any device.',
     ln_title: 'Available for Rixensart',
     ln_text: 'The app currently calculates the tax based on the Rixensart municipality rates only.',
