@@ -74,6 +74,12 @@ export const T = {
     compost_title: "Prime à l'achat d'un fût à compost",
     compost_sub: 'Subside communal Rixensart Zéro Déchet',
     feedback_label: 'Nous contacter',
+    share_label: "Partager l'app",
+    share_title: 'Partager Trashomètre',
+    share_sub: 'Aidez vos voisins à mieux maîtriser leur taxe déchets.',
+    share_text: 'Trashomètre : suivez votre taxe déchets en temps réel selon le barème 2026 de Rixensart.',
+    share_copy: 'Copier le lien',
+    link_copied_toast: 'Lien copié ✓',
 
     // Feedback modal
     fb_title: 'Nous contacter',
@@ -268,6 +274,12 @@ export const T = {
     compost_title: 'Premie voor aankoop compostvat',
     compost_sub: 'Gemeentelijke subsidie Rixensart Zéro Déchet',
     feedback_label: 'Contacteer ons',
+    share_label: 'App delen',
+    share_title: 'Trashomètre delen',
+    share_sub: 'Help uw buren hun afvalbelasting beter te beheersen.',
+    share_text: 'Trashomètre: volg uw afvalbelasting in real time volgens het Rixensart-tarief 2026.',
+    share_copy: 'Link kopiëren',
+    link_copied_toast: 'Link gekopieerd ✓',
 
     fb_title: 'Contacteer ons',
     fb_intro: 'Een vraag, een bug, een suggestie? Stuur ons een bericht, we lezen alles.',
@@ -451,6 +463,12 @@ export const T = {
     compost_title: 'Compost bin purchase subsidy',
     compost_sub: 'Rixensart Zero Waste municipal grant',
     feedback_label: 'Contact us',
+    share_label: 'Share the app',
+    share_title: 'Share Trashomètre',
+    share_sub: 'Help your neighbors better track their waste tax.',
+    share_text: 'Trashomètre: track your waste tax in real time based on the Rixensart 2026 rates.',
+    share_copy: 'Copy link',
+    link_copied_toast: 'Link copied ✓',
 
     fb_title: 'Contact us',
     fb_intro: 'A question, a bug, a suggestion? Send us a message, we read everything.',
