@@ -666,6 +666,9 @@ function applyLang() {
   setText('loader-txt',       t('loading'));
   setText('login-sub',        t('login_sub'));
   setText('login-note',       t('login_note'));
+  setText('ln-title',          t('ln_title'));
+  setText('ln-text',           t('ln_text'));
+  const lnCta = $('ln-cta'); if (lnCta) lnCta.querySelector('span').textContent = t('ln_cta');
   setText('btn-google-login', t('btn_google'));
   setText('btn-signin',       t('btn_signin'));
   setText('btn-register',     t('btn_register'));
