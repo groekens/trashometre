@@ -713,6 +713,10 @@ function applyLang() {
   setText('lbl-compost-title',t('compost_title'));
   setText('lbl-compost-sub',  t('compost_sub'));
   setText('lbl-feedback',     t('feedback_label'));
+  setText('lbl-share',         t('share_label'));
+  setText('share-title',       t('share_title'));
+  setText('share-sub',         t('share_sub'));
+  setText('lbl-share-copy',    t('share_copy'));
 
   // Feedback modal
   setText('lbl-fb-title',     t('fb_title'));
@@ -1017,6 +1021,70 @@ function updateOnlineStatus() {
 window.addEventListener('online',  updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 updateOnlineStatus();
+
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+window.shareApp = async () => {
+  const url = 'https://trashometre.be';
+  const title = 'Trashomètre';
+  const text = t('share_text');
+
+  // Use native share sheet if available (mostly mobile + Safari/Edge desktop)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return;
+    } catch (e) {
+      // User cancelled, or share failed — fall through to modal
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback: open custom share modal
+  openShareModal();
+};
+
+function openShareModal() {
+  const url = encodeURIComponent('https://trashometre.be');
+  const text = encodeURIComponent(t('share_text'));
+  const subject = encodeURIComponent('Trashomètre — suivi de la taxe déchets');
+
+  // Pre-fill href for each share target
+  $('share-whatsapp').href = `https://wa.me/?text=${text}%20${url}`;
+  $('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+  $('share-messenger').href = `https://www.facebook.com/dialog/send?app_id=0&link=${url}&redirect_uri=${url}`;
+  $('share-telegram').href = `https://t.me/share/url?url=${url}&text=${text}`;
+  $('share-email').href = `mailto:?subject=${subject}&body=${text}%0A%0A${url}`;
+
+  $('share-overlay').classList.add('active');
+}
+
+window.closeShare = () => $('share-overlay').classList.remove('active');
+
+window.copyShareLink = async () => {
+  try {
+    await navigator.clipboard.writeText('https://trashometre.be');
+    toast(t('link_copied_toast'), 'success');
+    closeShare();
+  } catch (e) {
+    // Fallback for browsers without clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = 'https://trashometre.be';
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast(t('link_copied_toast'), 'success'); closeShare(); }
+    catch { toast(t('error_generic'), 'error'); }
+    document.body.removeChild(ta);
+  }
+};
+
+// Click outside / Escape to close share modal
+$('share-overlay').addEventListener('click', e => {
+  if (e.target === $('share-overlay')) closeShare();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('share-overlay').classList.contains('active')) closeShare();
+});
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 $('log-date').max = new Date().toISOString().slice(0, 10); // prevent future dates in picker
