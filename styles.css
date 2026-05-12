@@ -457,6 +457,11 @@ body.show-install-banner #install-banner { display: flex; }
 .store-btn:hover { background: var(--green-dark); }
 .store-btn:active { transform: scale(0.97); }
 .store-btn svg { flex-shrink: 0; }
+.store-btn-web {
+  background: var(--bg-2); color: var(--text-2);
+  border: 1.5px solid var(--border);
+}
+.store-btn-web:hover { background: var(--green-bg); color: var(--green-dark); border-color: var(--green); }
 
 /* ── LOG FORM ── */
 .lform {
