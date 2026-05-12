@@ -776,8 +776,11 @@ function applyLang() {
   setText('btn-reset',        t('btn_reset'));
   setText('offline-text',     t('offline'));
 
-  // Lang buttons
-  ['fr', 'nl', 'en'].forEach(l => $('lb-' + l)?.classList.toggle('active', l === L));
+  // Lang buttons (settings modal + login screen)
+  ['fr', 'nl', 'en'].forEach(l => {
+    $('lb-'  + l)?.classList.toggle('active', l === L);
+    $('lls-' + l)?.classList.toggle('active', l === L);
+  });
 
   // Update chart labels by re-rendering
   if (state.chart) renderChart();
@@ -788,6 +791,7 @@ function applyLang() {
 window.setLang = (l) => {
   setLang(l);
   state.config.lang = l;
+  localStorage.setItem('trashometre.preferredLang', l);
   applyLang();
   renderEntries();
   // Save to Firestore (debounced via timeout)
@@ -1017,6 +1021,21 @@ updateOnlineStatus();
 // ── INIT ──────────────────────────────────────────────────────────────────────
 $('log-date').max = new Date().toISOString().slice(0, 10); // prevent future dates in picker
 $('log-date').valueAsDate = new Date();
+
+// Detect preferred language from browser (used before user logs in)
+// Once logged in, the language stored in Firestore takes over.
+function detectInitialLang() {
+  // Check if user already chose a language in a previous session
+  const stored = localStorage.getItem('trashometre.preferredLang');
+  if (stored && ['fr', 'nl', 'en'].includes(stored)) return stored;
+
+  // Else use browser language
+  const browser = (navigator.language || navigator.userLanguage || 'fr').toLowerCase();
+  if (browser.startsWith('nl')) return 'nl';
+  if (browser.startsWith('en')) return 'en';
+  return 'fr';  // default for fr-BE, fr-FR, and anything else
+}
+setLang(detectInitialLang());
 applyLang();
 
 // Loader safety: hide after 6s if Firebase hangs
