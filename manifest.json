@@ -13,25 +13,25 @@
   "categories": ["utilities", "productivity", "lifestyle"],
   "icons": [
     {
-      "src": "icons/android-chrome-192x192.png",
+      "src": "icons/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/android-chrome-512x512.png",
+      "src": "icons/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/android-chrome-192x192.png",
+      "src": "icons/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icons/android-chrome-512x512.png",
+      "src": "icons/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -43,7 +43,7 @@
       "short_name": "Ajouter",
       "description": "Enregistrer rapidement une collecte",
       "url": "./?action=add",
-      "icons": [{ "src": "icons/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icons/web-app-manifest-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
