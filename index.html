@@ -69,9 +69,7 @@
 <!-- PWA install banner (shown only on Safari iOS or Chrome Android when not installed) -->
 <div id="install-banner" role="dialog" aria-labelledby="install-banner-title">
   <button class="ib-close" onclick="dismissInstallBanner()" aria-label="Fermer">×</button>
-  <div class="ib-logo" aria-hidden="true">
-    <div class="ib-logo-inner">T<span class="ib-logo-dot">.</span></div>
-  </div>
+  <img class="ib-logo" src="icons/web-app-manifest-192x192.png?v=2.10.0" alt="" aria-hidden="true" />
   <div class="ib-body">
     <div class="ib-title" id="install-banner-title">Installer Trashomètre</div>
     <div class="ib-sub" id="install-banner-sub">www.trashometre.be</div>
@@ -576,7 +574,7 @@
     <button class="install-close" onclick="closeInstallGuide()" aria-label="Fermer">×</button>
 
     <div class="install-hdr">
-      <div class="install-icon" aria-hidden="true">📲</div>
+      <img class="install-icon-img" src="icons/web-app-manifest-192x192.png?v=2.10.0" alt="" aria-hidden="true" />
       <h2 class="install-title" id="install-title">Installer l'app</h2>
       <p class="install-sub" id="install-sub">Ajoutez Trashomètre à votre écran d'accueil pour un accès rapide.</p>
     </div>
