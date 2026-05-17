@@ -127,6 +127,9 @@ function resetState() {
 }
 
 // ── AUTH HANDLERS ─────────────────────────────────────────────────────────────
+// Check for pending redirect result on startup (handles iOS Safari fallback case)
+Data.processRedirectResult().catch(() => {});
+
 Data.onAuthChange(async user => {
   if (!user) {
     resetState();
@@ -181,9 +184,20 @@ function showAuthError(id, msg) {
 window.signInGoogle = async () => {
   try { await Data.signInGoogle(); }
   catch (e) {
-    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
-      toast(t('cancel_toast'), 'error');
+    const code = e?.code || '';
+    // User actions — no error toast
+    if (code === 'auth/popup-closed-by-user' ||
+        code === 'auth/cancelled-popup-request' ||
+        code === 'auth/user-cancelled') return;
+    // Popup blocked or Safari ITP issues — let user know to retry or use email
+    if (code === 'auth/popup-blocked' ||
+        code === 'auth/web-storage-unsupported' ||
+        code === 'auth/operation-not-supported-in-this-environment') {
+      toast(t('popup_blocked_toast'), 'error');
+      return;
     }
+    console.error('signInGoogle error:', e);
+    toast(t('cancel_toast'), 'error');
   }
 };
 
