@@ -5,7 +5,8 @@
 import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import {
   getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
+  getRedirectResult, browserPopupRedirectResolver
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
@@ -38,7 +39,22 @@ export function onAuthChange(callback) {
 }
 
 export async function signInGoogle() {
-  return signInWithPopup(auth, new GoogleAuthProvider());
+  const provider = new GoogleAuthProvider();
+  // Force account chooser even if user already signed into Google
+  provider.setCustomParameters({ prompt: 'select_account' });
+  return signInWithPopup(auth, provider, browserPopupRedirectResolver);
+}
+
+// Process redirect result on app startup, in case popup was blocked
+// and Firebase silently fell back to redirect mode
+export async function processRedirectResult() {
+  try {
+    return await getRedirectResult(auth, browserPopupRedirectResolver);
+  } catch (e) {
+    // Silently ignore — onAuthChange will fire if user did sign in successfully
+    console.warn('No pending redirect:', e?.code || e?.message);
+    return null;
+  }
 }
 export async function signInEmail(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
